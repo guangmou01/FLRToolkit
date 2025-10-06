@@ -2,7 +2,7 @@
 
 **Updated:** October 7, 2025\
 **Author:** Guangmou Deng\
-**Contact:** [guangmou01\@outlook.com](mailto:guangmou01@outlook.com)\
+**Contact:** [guangmou01\@outlook.com](mailto:guangmou01@outlook.com)
 
 ------------------------------------------------------------------------
 
