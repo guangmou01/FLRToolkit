@@ -12,9 +12,14 @@
 
 The toolkit provides an end-to-end workflow for forensic LR evaluation, including:
 
+-   **LR Computation** - computation of LR scores by different methods.
+
 -   **Calibration** – fusion and calibration of LR scores from multiple systems.
+
     1.  LogRegCalibrator.R
     2.  Bi-GaussCalibrator.R
+
 -   **Validation** – performance visualization of a single LR system.
+
     1.  ECEPlotter.R
     2.  TippettPlotter.R
