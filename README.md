@@ -8,7 +8,7 @@ Deng, Guangmou\
 
 ------------------------------------------------------------------------
 
-#### 🔎 Overview
+### 🔎 Overview
 
 **FLRToolkit** is a Shiny-based application suite that provides essential tools for **Forensic Likelihood-Ratio (LR)-based** and **Biometric** systems. It focuses on **source-level interpretation**, offering functionalities for end-to-end workflow for forensic LR evaluation, including:
 
@@ -17,16 +17,16 @@ Deng, Guangmou\
 -   **Calibration** – fusion and calibration of LR scores from multiple systems.
 
     1.  Linear Logistic-Regression Calibrator
-    2.  Bi-Gaussianized Calibrator
+    2.  Bi-Gaussianized Calibrator (LogReg variants)
 
 -   **Validation** – performance evaluation of LR-based systems.
 
     1.  Tippett Plot Generator
     2.  Empirical Cross-Entropy Plot Generator
 
-#### 📚 References
+### 📚 References
 
-**Articles**
+#### **Articles**
 
 -   Aitken, C. G. G., & Lucy, D. (2004). Evaluation of trace evidence in the form of multivariate data. *Journal of the Royal Statistical Society: Series C (Applied Statistics)*, 53(1), 109–122. <https://doi.org/10.1046/j.0035-9254.2003.05271.x>
 
@@ -44,7 +44,7 @@ Deng, Guangmou\
 
 -   Morrison, G. S. (2024). Bi-Gaussianized calibration of likelihood ratios. *Law, Probability and Risk*, 23(1), 1–34. <https://doi.org/10.1093/lpr/mgae004>
 
-**Scripts**
+#### **Scripts**
 
 -   Brümmer, N. (2005). *FoCal Toolbox* [MATLAB script]. <http://www.dsp.sun.ac.za/nbrummer/focal>
 
