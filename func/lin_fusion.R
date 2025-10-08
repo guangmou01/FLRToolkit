@@ -5,7 +5,7 @@
 # References:
 
 # Brümmer, N. (2005).
-# Focal Toolkit [MATLAB script].
+# Focal Toolbox [MATLAB script].
 # http://www.dsp.sun.ac.za/nbrummer/focal
 
 # Input:
