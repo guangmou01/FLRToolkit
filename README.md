@@ -1,8 +1,7 @@
 # FLRToolkit
 
-### - Forensic Likelihood Ratio Evaluation Toolkit
+### - Forensic Likelihood Ratio Evaluation Toolkit (BETA Version)
 
-BETA Version\
 October 8, 2025\
 Deng, Guangmou\
 [guangmou01\@outlook.com](mailto:guangmou01@outlook.com)
@@ -34,6 +33,10 @@ Deng, Guangmou\
 -   Morrison, G. S., et al. (2010). Estimating the Precision of the Likelihood-Ratio Output of a Forensic-Voice-Comparison System. *The Speaker and Language Recognition Workshop*, 63-70.
 
 -   Morrison, G. S. (2013). Tutorial on logistic-regression calibration and fusion: Converting a score to a likelihood ratio. *Australian Journal of Forensic Sciences*, 45(2), 173–197. <https://doi.org/10.1080/00450618.2012.733025>
+
+-   European Network of Forensic Science Institutes. (2015). *Methodological Guidelines for Best Practice in Forensic Semiautomatic and Automatic Speaker Recognition* (Version 01). <https://enfsi.eu/about-enfsi/structure/working-groups/documents-page/documents/best-practice-manuals/>
+
+-   Meuwly, D., et al. (2017). A guideline for the validation of likelihood ratio methods used for forensic evidence evaluation. *Forensic Science International*, 276, 142–153. <https://doi.org/10.1016/j.forsciint.2016.03.048>
 
 -   Morrison, G. S., & Poh, N. (2018). Avoiding overstating the strength of forensic evidence: Shrunk likelihood ratios/Bayes factors. *Science & Justice*, 58(3), 200–218. <https://doi.org/10.1016/j.scijus.2017.12.005>
 
