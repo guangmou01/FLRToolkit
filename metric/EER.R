@@ -1,5 +1,5 @@
 # Path: "metric/EER.R"
-# Equal Error Rate (EER)
+# Equal Error Rate (EER) Estimation
 
 # Input:
 #          ss_lr - same-source likelihood ratios in Raw-scale [numeric vector]

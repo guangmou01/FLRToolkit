@@ -1,5 +1,5 @@
 # Path: "func/MVKD.R"
-# R implementation of MVKD-based LR function for forensic interpretation
+# R implementation of MVKD-based LR function
 # Based on Aitken & Lucy (2004), and Morrison (2007)
 
 # References:

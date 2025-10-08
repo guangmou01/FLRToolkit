@@ -4,14 +4,14 @@
 
 # R implementation of the calibration stage for Bi-Gaussianized calibration/fusion,
 # based on Morrison (2024). This module maps uncalibrated LR-like scores into
-# calibrated log-likelihood ratios (lnLR) using the model trained by
+# calibrated log-likelihood ratios (lnLR) using the model pre-trained by
 # train_biGaussian_robust() or train_biGaussian_regularized().
 
 # Workflow:
 #   1. Apply the logistic regression fusion weights to transform the 
-#      uncalibrated scores into quasi-scores (pre-calibrated log-LR).
-#   2. Map the quasi-scores into their empirical cumulative distribution values
-#      (ECDF) based on the calibration data.
+#      uncalibrated scores into quasi-scores (pre-calibrated lnLR).
+#   2. Map the quasi-scores into their empirical cumulative distribution (ECDF) values
+#      based on the calibration data.
 #   3. Use the target bi-Gaussianized cumulative distribution function (CDF) derived 
 #      from training to invert ECDF values into well-calibrated lnLR values.
 
@@ -32,6 +32,13 @@
 #                   bigmm_cdf     - bi-Gaussianized CDF function
 #   grid_k       - range (in multiples of σ) for constructing the interpolation grid
 #   grid_len     - number of grid points (default = 10000)
+
+# Example of the input score matrix:
+#         sys-1 sys-2  ...  sys-d
+# trial-1 [0.8,  1.0,  ...,  0.9],
+# trial-2 [1.5,  1.7,  ...,  1.7],
+# ...     [...,  ...,  ...,  ...],
+# trial-n [0.3,  1.4,  ...,  0.8]
 
 # Output:
 #   calibrated_lnLR - [n × 1] numeric matrix of calibrated log-likelihood-

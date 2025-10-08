@@ -1,10 +1,11 @@
 # FLRToolkit
+
 ### - Forensic Likelihood Ratio Evaluation Toolkit
 
-📦 BETA Version\
-📅 October 8, 2025\
-👤 Deng, Guangmou\
-📧 [guangmou01\@outlook.com](mailto:guangmou01@outlook.com)
+BETA Version\
+October 8, 2025\
+Deng, Guangmou\
+[guangmou01\@outlook.com](mailto:guangmou01@outlook.com)
 
 ------------------------------------------------------------------------
 
@@ -29,6 +30,8 @@
 **Articles**
 
 -   Aitken, C. G. G., & Lucy, D. (2004). Evaluation of trace evidence in the form of multivariate data. *Journal of the Royal Statistical Society: Series C (Applied Statistics)*, 53(1), 109–122. <https://doi.org/10.1046/j.0035-9254.2003.05271.x>
+
+-   Morrison, G. S., et al. (2010). Estimating the Precision of the Likelihood-Ratio Output of a Forensic-Voice-Comparison System. *The Speaker and Language Recognition Workshop*, 63-70.
 
 -   Morrison, G. S. (2013). Tutorial on logistic-regression calibration and fusion: Converting a score to a likelihood ratio. *Australian Journal of Forensic Sciences*, 45(2), 173–197. <https://doi.org/10.1080/00450618.2012.733025>
 

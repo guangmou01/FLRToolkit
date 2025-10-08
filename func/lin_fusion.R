@@ -9,7 +9,7 @@
 # http://www.dsp.sun.ac.za/nbrummer/focal
 
 # Input:
-#   weights - numeric vector of length d + 1 
+#   weights - numeric vector of length d + 1 pre-trained by train_llr_fusion_*()
 #             (first d elements = system weights, last = bias)
 #    scores - [n × d] numeric matrix 
 #             (rows = trials, columns = systems)

@@ -1,5 +1,5 @@
 # Path: "metric/TippettPlot.R"
-# Tippett Plot (only for quick check)
+# Tippett Plot (for quick check purpose)
 
 if (!require("ggplot2")) install.packages("ggplot2", dependencies = TRUE)
 library(ggplot2)

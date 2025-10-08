@@ -1,7 +1,7 @@
 # Path: "metric/CI.R"
 # 95% Credible Interval (CI) Estimation for LR-based System
 
-# Parametric Procedure Referenced from:
+# Parametric Procedure Described in:
 # Morrison, G. S., Thiruvaran, T., & Epps, J. (2010).
 # Estimating the Precision of the Likelihood-Ratio Output
 # of a Forensic-Voice-Comparison System.

@@ -15,7 +15,7 @@
 #      of the target bi-Gaussianized distribution (Morrison, 2024).
 #   4. Fit a weighted empirical CDF on the quasi-scores.
 #   5. Construct a target bi-Gaussianized CDF model and store both CDFs.
-#   6. Use above pipeline to map new scores to calibrated log-LR values.
+#   6. Use above pipeline to map new scores to calibrated log-LR values by biGaussian_calibrator().
 
 # References:
 

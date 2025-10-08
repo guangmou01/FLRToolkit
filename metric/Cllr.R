@@ -7,7 +7,7 @@
 
 # Output:
 # Cllr - Log-likelihood-ratio Cost [numeric]
-# Cllr_min - Discrimination Loss [numeric]
+# Cllr_min - Discrimination Loss optimized by PAV [numeric]
 # Cllr_cal - Calibration Loss [numeric]
 
 # Standard Cllr Calculation Formula
