@@ -1,9 +1,10 @@
-# FLRToolkit: Forensic Likelihood Ratio Evaluation Toolkit
+# FLRToolkit
+### - Forensic Likelihood Ratio Evaluation Toolkit
 
-BETA Version\
-October 7, 2025\
-Deng, Guangmou\
-[guangmou01\@outlook.com](mailto:guangmou01@outlook.com)
+📦 BETA Version\
+📅 October 8, 2025\
+👤 Deng, Guangmou\
+📧 [guangmou01\@outlook.com](mailto:guangmou01@outlook.com)
 
 ------------------------------------------------------------------------
 
