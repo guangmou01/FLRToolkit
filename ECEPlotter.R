@@ -3,7 +3,9 @@
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
-APP_VERSION <- "Version 1.0.0"
+APP_VERSION <- "Version 1.1.0"
+SS_LABEL <- "ss"
+DS_LABEL <- "ds"
 
 if (!require("shiny")) install.packages("shiny", dependencies = TRUE)
 if (!require("DT")) install.packages("DT", dependencies = TRUE)
@@ -96,7 +98,7 @@ server <- function(input, output, session){
   
   output$single_label_col_select <- renderUI({
     req(single_data())
-    selectInput("single_label_col", "Select Label Column ( labeled as ‘ss’ / ‘ds’ )",
+    selectInput("single_label_col", "Select Label Column",
                 choices = names(single_data()))
   }) # dynamic module
   
@@ -120,12 +122,20 @@ server <- function(input, output, session){
     } # scale transformation (to raw-scale)
     
     labels <- single_data()[[input$single_label_col]]
+    if (!(SS_LABEL %in% labels) || !(DS_LABEL %in% labels)) {
+      showNotification(
+        paste0("Error: Label column must contain both '", SS_LABEL, 
+               "' and '", DS_LABEL, "' values."),
+        type = "error", duration = 8
+      )
+      validate(need(FALSE, "Invalid label configuration"))
+    }
     
     log10_priors <- seq(from = input$single_x_min - 5,
                         to = input$single_x_max + 5, length.out = 1000)
     
-    ss_LR <- lr_values[labels == "ss"]
-    ds_LR <- lr_values[labels == "ds"]
+    ss_LR <- lr_values[labels == SS_LABEL]
+    ds_LR <- lr_values[labels == DS_LABEL]
     
     ss_LR_base <- rep(1, length(ss_LR))
     ds_LR_base <- rep(1, length(ds_LR))
@@ -241,9 +251,17 @@ server <- function(input, output, session){
     } # scale transformation (to Raw-scale)
     
     labels <- single_data()[[input$single_label_col]]
+    if (!(SS_LABEL %in% labels) || !(DS_LABEL %in% labels)) {
+      showNotification(
+        paste0("Error: Label column must contain both '", SS_LABEL, 
+               "' and '", DS_LABEL, "' values."),
+        type = "error", duration = 8
+      )
+      validate(need(FALSE, "Invalid label configuration"))
+    }
     
-    ss_LR <- lr_values[labels == "ss"]
-    ds_LR <- lr_values[labels == "ds"]
+    ss_LR <- lr_values[labels == SS_LABEL]
+    ds_LR <- lr_values[labels == DS_LABEL]
     
     cllr_pooled <- Cllr(ss_LR, ds_LR)
     cllr_min <- Cllr_min(ss_LR, ds_LR)

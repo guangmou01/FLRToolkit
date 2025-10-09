@@ -3,7 +3,9 @@
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
-APP_VERSION <- "Version 2.0.0"
+APP_VERSION <- "Version 2.1.0"
+SS_LABEL <- "ss"
+DS_LABEL <- "ds"
 
 if (!require("shiny")) install.packages("shiny", dependencies = TRUE)
 if (!require("DT")) install.packages("DT", dependencies = TRUE)
@@ -156,7 +158,7 @@ server <- function(input, output, session){
   
   output$single_label_col_select <- renderUI({
     req(data())
-    selectInput("single_label_col", "Select Label Column ( labeled as ‘ss’ / ‘ds’ )",
+    selectInput("single_label_col", "Select Label Column",
                 choices = names(data()))
   }) # dynamic module
   
@@ -180,9 +182,17 @@ server <- function(input, output, session){
     } # scale transformation (to log10-scale)
     
     labels <- data()[[input$single_label_col]]
+    if (!(SS_LABEL %in% labels) || !(DS_LABEL %in% labels)) {
+      showNotification(
+        paste0("Error: Label column must contain both '", SS_LABEL, 
+               "' and '", DS_LABEL, "' values."),
+        type = "error", duration = 8
+      )
+      validate(need(FALSE, "Invalid label configuration"))
+    }
     
-    ss_LLR <- llr_values[labels == "ss"]
-    ds_LLR <- llr_values[labels == "ds"]
+    ss_LLR <- llr_values[labels == SS_LABEL]
+    ds_LLR <- llr_values[labels == DS_LABEL]
     
     data_ss <- data.frame(LLR = sort(ss_LLR))
     data_ss$Cumulative_Prop <- seq_along(data_ss$LLR) / length(data_ss$LLR)
@@ -246,8 +256,8 @@ server <- function(input, output, session){
     
     labels <- data()[[input$single_label_col]]
     
-    ss_LR <- lr_values[labels == "ss"]
-    ds_LR <- lr_values[labels == "ds"]
+    ss_LR <- lr_values[labels == SS_LABEL]
+    ds_LR <- lr_values[labels == DS_LABEL]
     
     cllr_pooled <- Cllr(ss_LR, ds_LR)
     cllr_min <- Cllr_min(ss_LR, ds_LR)
@@ -367,9 +377,18 @@ server <- function(input, output, session){
       } # scale transformation (to log10-scale)
       
       labels <- df[[label_col]]
+      if (!(SS_LABEL %in% labels) || !(DS_LABEL %in% labels)) {
+        showNotification(
+          paste0("Error in ", input$multi_data_file$name[i], 
+                 ": Label column must contain both '", SS_LABEL, 
+                 "' and '", DS_LABEL, "' values."),
+          type = "error", duration = 8
+        )
+        next
+      }
       
-      ss_LLR <- llr_values[labels == "ss"]
-      ds_LLR <- llr_values[labels == "ds"]
+      ss_LLR <- llr_values[labels == SS_LABEL]
+      ds_LLR <- llr_values[labels == DS_LABEL]
       
       data_ss <- data.frame(LLR = sort(ss_LLR))
       data_ss$Cumulative_Prop <- seq_along(data_ss$LLR) / length(data_ss$LLR)
@@ -416,8 +435,8 @@ server <- function(input, output, session){
       
       labels <- df[[label_col]]
       
-      ss_LR <- lr_values[labels == "ss"]
-      ds_LR <- lr_values[labels == "ds"]
+      ss_LR <- lr_values[labels == SS_LABEL]
+      ds_LR <- lr_values[labels == DS_LABEL]
       
       cllr_pooled <- Cllr(ss_LR, ds_LR)
       cllr_min <- Cllr_min(ss_LR, ds_LR)

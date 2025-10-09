@@ -4,6 +4,8 @@
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
 APP_VERSION <- "Version 1.1.0"
+SS_LABEL <- "ss"
+DS_LABEL <- "ds"
 
 if (!require("shiny")) install.packages("shiny", dependencies = TRUE)
 if (!require("DT")) install.packages("DT", dependencies = TRUE)
@@ -179,7 +181,7 @@ server <- function(input, output, session){
     req(single_data())
     df <- single_data()
     tagList(
-      selectInput("single_label_col", "Select Label Column ( labeled as ‘ss’ / ‘ds’ )",
+      selectInput("single_label_col", "Select Label Column",
                   choices = names(df)),
       selectInput("single_score_col", "Select Score Column(s)",
                   choices = names(df), multiple = TRUE),
@@ -246,8 +248,8 @@ server <- function(input, output, session){
     df <- single_data()
     score_cols <- input$single_score_col
     
-    ss_scores <- df[df[[input$single_label_col]] == "ss", score_cols, drop = FALSE]
-    ds_scores <- df[df[[input$single_label_col]] == "ds", score_cols, drop = FALSE]
+    ss_scores <- df[df[[input$single_label_col]] == SS_LABEL, score_cols, drop = FALSE]
+    ds_scores <- df[df[[input$single_label_col]] == DS_LABEL, score_cols, drop = FALSE]
     
     ss_lnLR <- as.matrix(apply(ss_scores, 2, transform_to_ln, scale = input$single_scale))
     ds_lnLR <- as.matrix(apply(ds_scores, 2, transform_to_ln, scale = input$single_scale))
@@ -307,7 +309,7 @@ server <- function(input, output, session){
   output$hv_cal_label_select <- renderUI({
     req(hv_cal_data())
     df <- hv_cal_data()
-    selectInput("hv_cal_label_col", "Select Label Column ( labeled as ‘ss’ / ‘ds’ )",
+    selectInput("hv_cal_label_col", "Select Label Column",
                 choices = names(df))
   }) # dynamic module for calibration label reading
   
@@ -319,7 +321,7 @@ server <- function(input, output, session){
   output$hv_val_label_select <- renderUI({
     req(hv_val_data())
     df <- hv_val_data()
-    selectInput("hv_val_label_col", "Select Label Column ( labeled as ‘ss’ / ‘ds’ )",
+    selectInput("hv_val_label_col", "Select Label Column",
                 choices = names(df))
   }) # dynamic module for validation label reading
   
@@ -392,8 +394,8 @@ server <- function(input, output, session){
     val_df <- hv_val_data()
     score_cols <- input$hv_score_col
     
-    cal_ss <- cal_df[cal_df[[input$hv_cal_label_col]] == "ss", score_cols, drop = FALSE]
-    cal_ds <- cal_df[cal_df[[input$hv_cal_label_col]] == "ds", score_cols, drop = FALSE]
+    cal_ss <- cal_df[cal_df[[input$hv_cal_label_col]] == SS_LABEL, score_cols, drop = FALSE]
+    cal_ds <- cal_df[cal_df[[input$hv_cal_label_col]] == DS_LABEL, score_cols, drop = FALSE]
     val_scores <- val_df[, score_cols, drop = FALSE]
     
     cal_ss_lnLR <- as.matrix(apply(cal_ss, 2, transform_to_ln, scale = input$hv_scale))
@@ -454,8 +456,8 @@ server <- function(input, output, session){
       )
     })
     
-    ss_lr <- calibrated_results[calibrated_results[[input$hv_val_label_col]] == "ss", "calibrated_LR"]
-    ds_lr <- calibrated_results[calibrated_results[[input$hv_val_label_col]] == "ds", "calibrated_LR"]
+    ss_lr <- calibrated_results[calibrated_results[[input$hv_val_label_col]] == SS_LABEL, "calibrated_LR"]
+    ds_lr <- calibrated_results[calibrated_results[[input$hv_val_label_col]] == DS_LABEL, "calibrated_LR"]
     
     ss_lr <- ss_lr[!is.na(ss_lr)]
     ds_lr <- ds_lr[!is.na(ds_lr)]
