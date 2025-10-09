@@ -3,7 +3,7 @@
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
-APP_VERSION <- "Version 2.1.0"
+APP_VERSION <- "Version 2.2.0"
 SS_LABEL <- "ss"
 DS_LABEL <- "ds"
 
@@ -255,6 +255,14 @@ server <- function(input, output, session){
     } # scale transformation (to Raw-scale)
     
     labels <- data()[[input$single_label_col]]
+    if (!(SS_LABEL %in% labels) || !(DS_LABEL %in% labels)) {
+      showNotification(
+        paste0("Error: Label column must contain both '", SS_LABEL, 
+               "' and '", DS_LABEL, "' values."),
+        type = "error", duration = 8
+      )
+      validate(need(FALSE, "Invalid label configuration"))
+    }
     
     ss_LR <- lr_values[labels == SS_LABEL]
     ds_LR <- lr_values[labels == DS_LABEL]
@@ -434,6 +442,15 @@ server <- function(input, output, session){
       } # scale transformation (to Raw-scale)
       
       labels <- df[[label_col]]
+      if (!(SS_LABEL %in% labels) || !(DS_LABEL %in% labels)) {
+        showNotification(
+          paste0("Error in ", input$multi_data_file$name[i], 
+                 ": Label column must contain both '", SS_LABEL, 
+                 "' and '", DS_LABEL, "' values."),
+          type = "error", duration = 8
+        )
+        next
+      }
       
       ss_LR <- lr_values[labels == SS_LABEL]
       ds_LR <- lr_values[labels == DS_LABEL]
