@@ -27,7 +27,7 @@ tippett.plot <- function(ss_lr, ds_lr,
               color = "blue", linetype = line.type) +
     geom_line(data = data_ss, aes(x = lg_LR, y = Cumulative_Prop),
               color = "red", linetype = line.type) +
-    geom_vline(xintercept = 0, color = "grey", linetype = "dashed", linewidth = 0.5) +
+    geom_vline(xintercept = 0, color = "black", linetype = "dashed", linewidth = 0.5) +
     scale_x_continuous(limits = range(c(data_ss$lg_LR, data_ds$lg_LR)),
                        expand = c(0, 0),
                        breaks = pretty(c(data_ss$lg_LR, data_ds$lg_LR), n = 8)) +

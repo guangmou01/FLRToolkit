@@ -10,9 +10,11 @@ Deng, Guangmou\
 
 ### 🔎 Overview
 
-**FLRToolkit** is a Shiny-based application suite that provides essential tools for **Forensic Likelihood-Ratio (LR)-based** and **Biometric** systems. It focuses on **source-level interpretation**, offering functionalities for end-to-end workflow for forensic LR evaluation, including:
+**FLRToolkit** is a Shiny-based application suite that provides essential tools for **Forensic Likelihood-Ratio (LR)-based** and **Biometric** systems. It focuses on **source-level interpretation**, offering functionalities of end-to-end workflow for forensic LR evaluation, including:
 
 -   **LR Computation** - computation of LR scores by different methods.
+
+    1.  MVKD-based Likelihood Ratio
 
 -   **Calibration** – fusion and calibration of LR scores from multiple systems.
 
