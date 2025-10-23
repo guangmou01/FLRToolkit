@@ -598,7 +598,7 @@ server <- function(input, output, session){
       results_list <- vector("list", length(pairings))
       
       total_steps <- length(pairings)
-      withProgress(message = "Preparing Leave-out structures...", value = 0, {
+      withProgress(message = "Preparing Leave-out Structures...", value = 0, {
         for (i in seq_along(pairings)) {
           pair <- pairings[[i]]
           off_item <- pair[1]
@@ -692,7 +692,7 @@ server <- function(input, output, session){
       idx <- 1
       
       total_steps <- length(items)
-      withProgress(message = "Preparing Leave-out structures...", value = 0, {
+      withProgress(message = "Preparing Leave-out Structures...", value = 0, {
         for (off_item in items) {
           off_id <- strsplit(off_item, "\\|")[[1]][1]
           

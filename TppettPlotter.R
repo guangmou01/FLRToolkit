@@ -3,7 +3,7 @@
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
-APP_VERSION <- "Version 2.2.0"
+APP_VERSION <- "Version 2.3.0"
 SS_LABEL <- "ss"
 DS_LABEL <- "ds"
 
@@ -17,7 +17,7 @@ library(ggplot2)
 
 source("metric/Cllr.R")
 source("metric/EER.R")
-source("metric/CI.R")
+source("metric/CI_direc.R")
 
 # Shiny UI
 
@@ -182,15 +182,6 @@ server <- function(input, output, session){
     } # scale transformation (to log10-scale)
     
     labels <- data()[[input$single_label_col]]
-    if (!(SS_LABEL %in% labels) || !(DS_LABEL %in% labels)) {
-      showNotification(
-        paste0("Error: Label column must contain both '", SS_LABEL, 
-               "' and '", DS_LABEL, "' values."),
-        type = "error", duration = 8
-      )
-      validate(need(FALSE, "Invalid label configuration"))
-    }
-    
     ss_LLR <- llr_values[labels == SS_LABEL]
     ds_LLR <- llr_values[labels == DS_LABEL]
     
@@ -255,15 +246,6 @@ server <- function(input, output, session){
     } # scale transformation (to Raw-scale)
     
     labels <- data()[[input$single_label_col]]
-    if (!(SS_LABEL %in% labels) || !(DS_LABEL %in% labels)) {
-      showNotification(
-        paste0("Error: Label column must contain both '", SS_LABEL, 
-               "' and '", DS_LABEL, "' values."),
-        type = "error", duration = 8
-      )
-      validate(need(FALSE, "Invalid label configuration"))
-    }
-    
     ss_LR <- lr_values[labels == SS_LABEL]
     ds_LR <- lr_values[labels == DS_LABEL]
     
@@ -317,7 +299,7 @@ server <- function(input, output, session){
       wellPanel(
         h5(paste("Options for :", file_name)),
         selectInput(inputId = paste0("multi_label_col_", i),
-                    label = "Select Label Column ( labeled as ‘ss’ / ‘ds’ )",
+                    label = "Select Label Column",
                     choices = names(df)),
         selectInput(inputId = paste0("multi_lr_col_", i),
                     label = "Select LR Column",
@@ -385,16 +367,6 @@ server <- function(input, output, session){
       } # scale transformation (to log10-scale)
       
       labels <- df[[label_col]]
-      if (!(SS_LABEL %in% labels) || !(DS_LABEL %in% labels)) {
-        showNotification(
-          paste0("Error in ", input$multi_data_file$name[i], 
-                 ": Label column must contain both '", SS_LABEL, 
-                 "' and '", DS_LABEL, "' values."),
-          type = "error", duration = 8
-        )
-        next
-      }
-      
       ss_LLR <- llr_values[labels == SS_LABEL]
       ds_LLR <- llr_values[labels == DS_LABEL]
       
@@ -442,16 +414,6 @@ server <- function(input, output, session){
       } # scale transformation (to Raw-scale)
       
       labels <- df[[label_col]]
-      if (!(SS_LABEL %in% labels) || !(DS_LABEL %in% labels)) {
-        showNotification(
-          paste0("Error in ", input$multi_data_file$name[i], 
-                 ": Label column must contain both '", SS_LABEL, 
-                 "' and '", DS_LABEL, "' values."),
-          type = "error", duration = 8
-        )
-        next
-      }
-      
       ss_LR <- lr_values[labels == SS_LABEL]
       ds_LR <- lr_values[labels == DS_LABEL]
       
