@@ -51,7 +51,7 @@
 # ------------------------------------------------------------------------------
 
 biGaussian_calibrator <- function(uncal_score, model,
-                                  grid_k = 8, grid_len = 10000) {
+                                  grid_k = 4, grid_len = 10000) {
   
   fusion_w <- model$fusion_w
   sigma2_target <- model$sigma2_target
@@ -73,10 +73,13 @@ biGaussian_calibrator <- function(uncal_score, model,
   qvals <- weighted_ecdf(quasi_uncal)
   
   # 3. ECDF value to calibrated score (lnLR)
+  half_sigma2_target <- sigma2_target / 2
   sigma_target <- sqrt(sigma2_target)
   
-  grid <- seq(-grid_k * sigma_target, grid_k * sigma_target,
-              length.out = grid_len)
+  lnLR_max <- half_sigma2_target + grid_k * sigma_target
+  lnLR_min <- -lnLR_max
+  grid <- seq(lnLR_min, lnLR_max, length.out = grid_len)
+  
   target_cdf <- bigmm_cdf(grid)
   
   unique_idx <- !duplicated(target_cdf)
