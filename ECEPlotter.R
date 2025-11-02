@@ -197,7 +197,7 @@ server <- function(input, output, session){
         axis.title = element_text(color = "black", size = input$single_font_size),
         panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
         panel.background = element_rect(fill = "white", color = NA),
-        plot.background = element_rect(fill = "white", color = NA),
+        plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"),
         legend.position = if (input$show_legend) c(0.98, 0.98) else "none",
         legend.key.height = unit(0.5, "cm"),

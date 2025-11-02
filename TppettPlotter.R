@@ -215,7 +215,7 @@ server <- function(input, output, session){
             axis.title = element_text(color = "black", size = input$single_font_size),
             panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
             panel.background = element_rect(fill = "white", color = NA),
-            plot.background = element_rect(fill = "white", color = NA),
+            plot.background = element_rect(fill = "transparent", color = NA),
             plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"))
     
     # Evidence mark
@@ -343,7 +343,7 @@ server <- function(input, output, session){
             axis.title = element_text(color = "black", size = input$multi_font_size),
             panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
             panel.background = element_rect(fill = "white", color = NA),
-            plot.background = element_rect(fill = "white", color = NA),
+            plot.background = element_rect(fill = "transparent", color = NA),
             plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"))
     
     n_files <- length(multi_dfs)
@@ -590,7 +590,7 @@ server <- function(input, output, session){
         axis.title = element_text(color = "black", size = input$precision_font_size),
         panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
         panel.background = element_rect(fill = "white", color = NA),
-        plot.background = element_rect(fill = "white", color = NA),
+        plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm")
       )
     
