@@ -162,7 +162,8 @@ server <- function(input, output, session){
                                       color = Type, linetype = Type)) +
       geom_line(linewidth = 1) +
       geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
-      labs(x = "Log10 Prior Odds", y = "Empirical Cross-entropy Value") +
+      labs(x = expression(log[10]~"Prior Odds"),
+           y = "Empirical Cross-entropy Value") +
       scale_color_manual(values = c(
         "after PAV" = "blue",
         "LR values" = "red",

@@ -5,8 +5,8 @@ if (!require("ggplot2")) install.packages("ggplot2", dependencies = TRUE)
 library(ggplot2)
 
 tippett.plot <- function(ss_lr, ds_lr,
-                         x_lab = "Log10 Likelihood Ratio", 
-                         y_lab = "Cumulative Proportion",
+                         x_lab = expression(log[10](Lambda)), 
+                         y_lab = "cumulative proportion",
                          line.type = 1,
                          font = "sans", font.size = 14) {
   

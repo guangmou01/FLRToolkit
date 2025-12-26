@@ -186,14 +186,7 @@ MVKD_scorer <- function(off_data, sus_data, bg_para) {
   
   denominator <- denom1 * denom2 * denom3 * denom4
   
-  likelihood_ratio <- numerator / denominator
-  
-  # numerical safeguards
-  if (likelihood_ratio == 0) {
-    likelihood_ratio <- .Machine$double.xmin
-  }
-  
-  llr <- log10(likelihood_ratio)
+  llr <- log10(numerator) - log10(denominator)
   
   if (is.infinite(llr) && llr > 0) {
     llr <- log(.Machine$double.xmax) / log(10)

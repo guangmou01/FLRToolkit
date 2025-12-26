@@ -194,7 +194,8 @@ server <- function(input, output, session){
       geom_line(data = data_ss, aes(x = LLR, y = Cumulative_Prop), color = "red") +
       geom_line(data = data_ds, aes(x = LLR, y = Cumulative_Prop), color = "blue") +
       geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
-      labs(x = "Log10 Likelihood Ratio", y = "Cumulative Proportion") +
+      labs(x = expression(log[10](Lambda)),
+           y = "cumulative proportion") +
       scale_x_continuous(
         limits = c(input$single_x_min, input$single_x_max),
         expand = c(0, 0),
@@ -322,7 +323,8 @@ server <- function(input, output, session){
     
     multi_plot <- ggplot() +
       geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
-      labs(x = "Log10 Likelihood Ratio", y = "Cumulative Proportion") +
+      labs(x = expression(log[10](Lambda)),
+           y = "cumulative proportion") +
       scale_x_continuous(
         limits = c(input$multi_x_min, input$multi_x_max),
         expand = c(0, 0),
@@ -568,7 +570,8 @@ server <- function(input, output, session){
       geom_line(data = ds_CI_upper, aes(x = lg_LR, y = Cumulative_Prop), color = "blue", linetype = "dotted") +
       
       geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
-      labs(x = "Log10 Likelihood Ratio", y = "Cumulative Proportion") +
+      labs(x = expression(log[10](Lambda)),
+           y = "cumulative proportion") +
       scale_x_continuous(
         limits = c(input$precision_x_min, input$precision_x_max),
         expand = c(0, 0),

@@ -517,8 +517,8 @@ server <- function(input, output, session){
       tippett.plot(
         ss_lr = ss_lr,
         ds_lr = ds_lr,
-        x_lab = "Log10 Likelihood Ratio",
-        y_lab = "Cumulative Proportion"
+        x_lab = expression(log[10](Lambda)), 
+        y_lab = "cumulative proportion"
       )
     })
     
@@ -834,8 +834,8 @@ server <- function(input, output, session){
       tippett.plot(
         ss_lr = ss_lr,
         ds_lr = ds_lr,
-        x_lab = "Log10 Likelihood Ratio",
-        y_lab = "Cumulative Proportion"
+        x_lab = expression(log[10](Lambda)), 
+        y_lab = "cumulative proportion"
       )
     })
     
@@ -918,8 +918,8 @@ server <- function(input, output, session){
       tippett.plot(
         ss_lr = ss_lr,
         ds_lr = ds_lr,
-        x_lab = "Log10 Likelihood Ratio",
-        y_lab = "Cumulative Proportion"
+        x_lab = expression(log[10](Lambda)), 
+        y_lab = "cumulative proportion"
       )
     })
   })

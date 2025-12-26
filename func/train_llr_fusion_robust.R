@@ -65,10 +65,8 @@ train_llr_fusion_robust <- function(targets, non_targets,
   
   # Construct input matrix x: dimension [d+1, 2*(nt+nn)]
   x <- cbind(
-    rbind(targets, rep(1, nt)), 
-    rbind(non_targets, rep(1, nn)), 
-    -rbind(non_targets, rep(1, nn)), 
-    -rbind(targets, rep(1, nt))
+    rbind(cbind(targets, non_targets), rep(1, ntnn)),
+    -rbind(cbind(non_targets, targets), rep(1, ntnn))
   )
   
   # Weights and offset vector
