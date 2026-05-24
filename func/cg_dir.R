@@ -1,7 +1,20 @@
 # Path: "func/cg_dir.R"
 # Conjugate Gradient in LogReg training.
 
-cg_dir <- function(u, g, old_g) {
-  beta <- sum(g * (g - old_g)) / sum(old_g * old_g)
-  return(g - beta * u)
+cg_dir <- function(old_dir, grad, old_grad) {
+  g <- grad
+  
+  grad <- as.vector(grad)
+  old_grad <- as.vector(old_grad)
+  old_dir_vec <- as.vector(old_dir)
+  
+  delta <- grad - old_grad
+  den <- sum(old_dir_vec * delta)
+  
+  if (den == 0) {
+    return(g * 0)
+  } else {
+    beta <- sum(grad * delta) / den
+    return(g - beta * old_dir)
+  }
 }
