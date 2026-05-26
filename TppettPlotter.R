@@ -191,8 +191,10 @@ server <- function(input, output, session){
     data_ds$Cumulative_Prop <- seq_along(data_ds$LLR) / length(data_ds$LLR)
     
     single_plot <- ggplot() +
-      geom_line(data = data_ss, aes(x = LLR, y = Cumulative_Prop), color = "red") +
-      geom_line(data = data_ds, aes(x = LLR, y = Cumulative_Prop), color = "blue") +
+      geom_line(data = data_ss, aes(x = LLR, y = Cumulative_Prop), color = "red",
+                linewidth = 0.8) +
+      geom_line(data = data_ds, aes(x = LLR, y = Cumulative_Prop), color = "blue",
+                linewidth = 0.8) +
       geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
       labs(x = expression(log[10](Lambda)),
            y = "cumulative proportion") +
@@ -223,7 +225,8 @@ server <- function(input, output, session){
     if (!is.null(input$single_E) && !is.na(input$single_E) && input$single_E > 0) {
       single_plot <- single_plot + geom_vline(xintercept = log10(input$single_E),
                                               color = "darkgreen",
-                                              linetype = "solid")
+                                              linetype = "solid",
+                                              linewidth = 0.8)
     }
     
     return(single_plot) # return the final plot
@@ -379,13 +382,16 @@ server <- function(input, output, session){
       
       multi_plot <- multi_plot + geom_line(data = data_ss,
                                            aes(x = LLR, y = Cumulative_Prop),
-                                           color = "red", linetype = line_type)
+                                           color = "red", linetype = line_type,
+                                           linewidth = 0.8)
       multi_plot <- multi_plot + geom_line(data = data_ds,
                                            aes(x = LLR, y = Cumulative_Prop),
-                                           color = "blue", linetype = line_type)
+                                           color = "blue", linetype = line_type,
+                                           linewidth = 0.8)
       if (!is.null(E_value) && !is.na(E_value) && E_value > 0) {
         multi_plot <- multi_plot + geom_vline(xintercept = log10(E_value),
-                                              color = "darkgreen", linetype = line_type)
+                                              color = "darkgreen", linetype = line_type,
+                                              linewidth = 0.8)
         }
       }
     return(multi_plot)
@@ -561,13 +567,19 @@ server <- function(input, output, session){
     )
     
     precision_plot <- ggplot() +
-      geom_line(data = ss_log10LR, aes(x = lg_LR, y = Cumulative_Prop), color = "red") +
-      geom_line(data = ss_CI_lower, aes(x = lg_LR, y = Cumulative_Prop), color = "red", linetype = "dotted") +
-      geom_line(data = ss_CI_upper, aes(x = lg_LR, y = Cumulative_Prop), color = "red", linetype = "dotted") +
+      geom_line(data = ss_log10LR, aes(x = lg_LR, y = Cumulative_Prop), color = "red",
+                linewidth = 0.8) +
+      geom_line(data = ss_CI_lower, aes(x = lg_LR, y = Cumulative_Prop), color = "red",
+                linewidth = 0.8, linetype = "dotted") +
+      geom_line(data = ss_CI_upper, aes(x = lg_LR, y = Cumulative_Prop), color = "red",
+                linewidth = 0.8, linetype = "dotted") +
       
-      geom_line(data = ds_log10LR, aes(x = lg_LR, y = Cumulative_Prop), color = "blue") +
-      geom_line(data = ds_CI_lower, aes(x = lg_LR, y = Cumulative_Prop), color = "blue", linetype = "dotted") +
-      geom_line(data = ds_CI_upper, aes(x = lg_LR, y = Cumulative_Prop), color = "blue", linetype = "dotted") +
+      geom_line(data = ds_log10LR, aes(x = lg_LR, y = Cumulative_Prop), color = "blue",
+                linewidth = 0.8) +
+      geom_line(data = ds_CI_lower, aes(x = lg_LR, y = Cumulative_Prop), color = "blue",
+                linewidth = 0.8, linetype = "dotted") +
+      geom_line(data = ds_CI_upper, aes(x = lg_LR, y = Cumulative_Prop), color = "blue",
+                linewidth = 0.8, linetype = "dotted") +
       
       geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
       labs(x = expression(log[10](Lambda)),
@@ -600,7 +612,8 @@ server <- function(input, output, session){
     # Evidence mark
     if (!is.null(input$precision_E) && !is.na(input$precision_E) && input$precision_E > 0) {
       precision_plot <- precision_plot +
-        geom_vline(xintercept = log10(input$precision_E), color = "darkgreen", linetype = "solid")
+        geom_vline(xintercept = log10(input$precision_E), color = "darkgreen",
+                   linewidth = 0.8, linetype = "solid")
     }
     
     return(precision_plot)
