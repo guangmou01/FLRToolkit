@@ -1,9 +1,9 @@
 # ------------------------------------------------------------------------------
-# Updated: October 7, 2025
+# Updated: May 26, 2026
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
-APP_VERSION <- "Version 4.2.0"
+APP_VERSION <- "Version 4.3.0"
 SS_LABEL <- "ss"
 DS_LABEL <- "ds"
 
@@ -69,6 +69,7 @@ ui <- fluidPage(
                  numericInput("single_grid_len", "Interpolation Grid Points",
                               value = 10000, min = 100, step = 100),
                  hr(),
+                 checkboxInput("single_zscore", "Apply Z-score Normalization", value = FALSE),
                  actionButton("single_run_calibration", "Run Calibration", class = "btn-primary")
                ),
                mainPanel(
@@ -111,6 +112,7 @@ ui <- fluidPage(
                  numericInput("hv_grid_len", "Interpolation Grid Points",
                               value = 10000, min = 100, step = 100),
                  hr(),
+                 checkboxInput("hv_zscore", "Apply Z-score Normalization", value = FALSE),
                  actionButton("hv_run_calibration", "Run Calibration", class = "btn-primary"),
                  downloadButton("hv_downloadData", "Download Calibrated Data")
                ),
@@ -162,6 +164,7 @@ ui <- fluidPage(
                  numericInput("loo_grid_len", "Interpolation Grid Points",
                               value = 10000, min = 100, step = 100),
                  hr(),
+                 checkboxInput("loo_zscore", "Apply Z-score Normalization", value = FALSE),
                  actionButton("loo_run_calibration", "Run Calibration", class = "btn-primary"),
                  downloadButton("loo_downloadData", "Download Calibrated Data")
                ),
@@ -218,7 +221,7 @@ server <- function(input, output, session){
       selectInput(inputId = "evidence_scale",
                   label = "LR Scale for the Evidence Score",
                   choices = c("Raw", "log10(LR)", "ln(LR)"), 
-                  selected = "log10(LR)"),
+                  selected = "log10(LR)")
     )
   }) # dynamic module for evidential scores reading
   
@@ -272,6 +275,17 @@ server <- function(input, output, session){
     evidence_vec <- sapply(score_cols, function(col) as.numeric(input[[paste0("E_", col)]]))
     evidence_lnLR <- transform_to_ln(evidence_vec, input$evidence_scale)
     evidence_lnLR <- matrix(evidence_lnLR, nrow = 1)
+    
+    if (isTRUE(input$single_zscore)) {
+      z_train <- rbind(ss_lnLR, ds_lnLR)
+      z_mu <- colMeans(z_train, na.rm = TRUE)
+      z_sd <- apply(z_train, 2, sd, na.rm = TRUE)
+      z_sd[is.na(z_sd) | z_sd == 0] <- 1
+      
+      ss_lnLR <- sweep(sweep(ss_lnLR, 2, z_mu, "-"), 2, z_sd, "/")
+      ds_lnLR <- sweep(sweep(ds_lnLR, 2, z_mu, "-"), 2, z_sd, "/")
+      evidence_lnLR <- sweep(sweep(evidence_lnLR, 2, z_mu, "-"), 2, z_sd, "/")
+    }
     
     df_val <- if (is.null(input$single_df) || input$single_df == "") NULL else as.numeric(input$single_df)
     
@@ -430,6 +444,17 @@ server <- function(input, output, session){
     cal_ss_lnLR <- as.matrix(apply(cal_ss, 2, transform_to_ln, scale = input$hv_scale))
     cal_ds_lnLR <- as.matrix(apply(cal_ds, 2, transform_to_ln, scale = input$hv_scale))
     val_lnLR <- as.matrix(apply(val_scores, 2, transform_to_ln, scale = input$hv_scale))
+    
+    if (isTRUE(input$hv_zscore)) {
+      z_train <- rbind(cal_ss_lnLR, cal_ds_lnLR)
+      z_mu <- colMeans(z_train, na.rm = TRUE)
+      z_sd <- apply(z_train, 2, sd, na.rm = TRUE)
+      z_sd[is.na(z_sd) | z_sd == 0] <- 1
+      
+      cal_ss_lnLR <- sweep(sweep(cal_ss_lnLR, 2, z_mu, "-"), 2, z_sd, "/")
+      cal_ds_lnLR <- sweep(sweep(cal_ds_lnLR, 2, z_mu, "-"), 2, z_sd, "/")
+      val_lnLR <- sweep(sweep(val_lnLR, 2, z_mu, "-"), 2, z_sd, "/")
+    }
     
     df_val <- if (is.null(input$hv_df) || input$hv_df == "") NULL else as.numeric(input$hv_df)
     
@@ -645,6 +670,16 @@ server <- function(input, output, session){
           next
         }
         
+        if (isTRUE(input$loo_zscore)) {
+          z_train <- rbind(train_ss_ln, train_ds_ln)
+          z_mu <- colMeans(z_train, na.rm = TRUE)
+          z_sd <- apply(z_train, 2, sd, na.rm = TRUE)
+          z_sd[is.na(z_sd) | z_sd == 0] <- 1
+          
+          train_ss_ln <- sweep(sweep(train_ss_ln, 2, z_mu, "-"), 2, z_sd, "/")
+          train_ds_ln <- sweep(sweep(train_ds_ln, 2, z_mu, "-"), 2, z_sd, "/")
+        }
+        
         model <- tryCatch({
           if (input$loo_logreg_select == "Robust Version") {
             train_biGaussian_robust(
@@ -678,6 +713,11 @@ server <- function(input, output, session){
         idx <- which(df$leave_out_key == key)
         if (length(idx) > 0) {
           batch_scores <- ln_mat_all[idx, , drop = FALSE]
+          
+          if (isTRUE(input$loo_zscore)) {
+            batch_scores <- sweep(sweep(batch_scores, 2, z_mu, "-"), 2, z_sd, "/")
+          }
+          
           cal_llr_batch <- tryCatch({
             biGaussian_calibrator(
               uncal_score = batch_scores,
