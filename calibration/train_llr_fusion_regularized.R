@@ -1,6 +1,6 @@
-# Path: "func/train_llr_fusion_regularized.R"
-# R implementation of regularized LogReg from Focal toolkit for LR calibration & fusion
-# Based on Morrison’s MATLAB implementation (2017)
+# Path: "calibration/train_llr_fusion_regularized.R"
+# R implementation of the regularized LogReg from Focal for LR calibration & fusion
+# based on Morrison’s MATLAB implementation (2017)
 
 # References:
 
@@ -18,16 +18,15 @@
 # https://doi.org/10.1016/j.scijus.2017.12.005
 
 # Input:
-#       targets - scores from target (same-source) trials 
-#                 (rows = trials, columns = systems) [numeric matrix]
-#   non_targets - scores from non-target (different-source) trials 
-#                 (rows = trials, columns = systems) [numeric matrix]
-#         prior - prior probability of the target hypothesis [numeric scalar, default = 0.5]
-#         kappa - regularization strength (larger values impose stronger shrinkage 
-#                 towards the flat prior, reducing overfitting) [numeric scalar, default = 0]
-#            df - effective degrees of freedom used to scale the flat-prior penalty
-#                 if NULL, defaults to the total number of trials (nt + nn) [integer]
-#      max_iter - Max iteration number for Conjugate Gradient [integer, default = 1000]
+# targets - [n_ss × d] matrix of log-LR scores for same-source trials
+# non_targets - [n_ds × d] matrix of log-LR scores for different-source trials
+# prior - prior probability of the target hypothesis (default = 0.5)
+# kappa - regularization strength for logistic regression (default = 0)
+#         <= 0.1 to improve numerical stability;
+#         > 1 to introduce the shrinkage.
+# df - degrees of freedom for regularization (optional)
+#      e.g., number of sources in the calibration set.
+# max_iter - maximum number of iterations for optimization (default = 1000)
 
 # Example of the input score matrix:
 #         sys-1 sys-2  ...  sys-d
@@ -37,32 +36,21 @@
 # trial-n [0.3,  1.4,  ...,  0.8]
 
 # Output:
-#             w - weight vector for logistic regression fusion [numeric vector, length = d + 1]
-#                 (d system weights + 1 bias term)
+# w - weight vector for logistic regression fusion [numeric vector, length = d + 1]
+#     (d system weights + 1 bias term)
 
 # ------------------------------------------------------------------------------
-# Updated: September 26, 2025
+# Updated: 2026/06/02
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
 
-source("func/logit.R")
-source("func/cg_dir.R")
+source("calibration/logit.R")
+source("calibration/cg_dir.R")
 
 train_llr_fusion_regularized <- function(targets, non_targets,
                                          prior = 0.5, kappa = 0, df = NULL,
                                          max_iter = 1000) {
-  
-  if (!is.matrix(targets)) {
-    stop("'targets' must be a [n × d] numeric matrix.")
-  }
-  if (!is.matrix(non_targets)) {
-    stop("'non_targets' must be a [n × d] numeric matrix.")
-  }
-  if (ncol(targets) != ncol(non_targets)) {
-    stop("Mismatch in system dimension between targets and non_targets.")
-  }
-  max_iter <- max_iter
   
   targets <- t(as.matrix(targets))
   non_targets <- t(as.matrix(non_targets))
@@ -90,7 +78,7 @@ train_llr_fusion_regularized <- function(targets, non_targets,
     offset <- logit(prior) * c(rep(1, nt), rep(-1, nn))
     
   } else {
-    # Weighted logistic regression with regularization
+    # logistic regression with regularization
     weights_temp <- c(
       rep(prior / prop, nt),
       rep((1 - prior) / (1 - prop), nn)
@@ -106,7 +94,7 @@ train_llr_fusion_regularized <- function(targets, non_targets,
       -rbind(non_targets, rep(1, nn))
     )
     
-    # Add symmetric prior samples: [x, x, -x]
+    # add symmetric prior samples: [x, x, -x]
     x <- cbind(x_temp, x_temp, -x_temp)
     
     offset_temp <- logit(prior) * c(rep(1, nt), rep(-1, nn))

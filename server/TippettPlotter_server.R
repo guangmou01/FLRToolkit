@@ -1,152 +1,4 @@
-# ------------------------------------------------------------------------------
-# Updated: October 7, 2025
-# Author: Deng, Guangmou
-# Contact: guangmou01@outlook.com
-# ------------------------------------------------------------------------------
-APP_VERSION <- "Version 2.3.0"
-SS_LABEL <- "ss"
-DS_LABEL <- "ds"
-
-if (!require("shiny")) install.packages("shiny", dependencies = TRUE)
-if (!require("DT")) install.packages("DT", dependencies = TRUE)
-if (!require("ggplot2")) install.packages("ggplot2", dependencies = TRUE)
-
-library(shiny)
-library(DT)
-library(ggplot2)
-
-source("metric/Cllr.R")
-source("metric/EER.R")
-source("metric/CI_direc.R")
-
-# Shiny UI
-
-ui <- fluidPage(
-  titlePanel(
-    tagList(
-      "Tippett Plot Generator",
-      tags$span(APP_VERSION,
-                style = "font-size: 16px; color: gray; margin-left: 12px;")
-    )
-  ),
-  tabsetPanel(
-    
-    # ====================== Single System Evaluation (UI) =====================
-    tabPanel("Single System Evaluation",
-             sidebarLayout(
-               sidebarPanel(
-                 fileInput("single_data_file", "Upload Data File ( .csv )",
-                           accept = ".csv", multiple = FALSE),
-                 uiOutput("single_label_col_select"),
-                 uiOutput("single_lr_col_select"),
-                 hr(),
-                 selectInput("single_scale", "Choose LR Scale",
-                             choices = c("Raw", "log10(LR)", "ln(LR)"), 
-                             selected = "Raw"),
-                 numericInput("single_E", "Evidence LR Value ( raw )", value = NULL, min = 0, step = 0.1),
-                 fluidRow(
-                   column(6, numericInput("single_x_min", "X-axis min", value = -5)),
-                   column(6, numericInput("single_x_max", "X-axis max", value = 5))
-                 ),
-                 fluidRow(
-                   column(6, numericInput("single_y_min", "Y-axis min", value = 0)),
-                   column(6, numericInput("single_y_max", "Y-axis max", value = 1))
-                 ),
-                 numericInput("single_font_size", "Font Size", value = 14, min = 6, max = 24),
-                 selectInput("single_fig_down", "Download Format", 
-                             choices = c("PNG" = "png", "PDF" = "pdf", "SVG" = "svg"), 
-                             selected = "png"),
-                 downloadButton("single_downloadPlot", "Download Plot")
-               ),
-               mainPanel(
-                 h5("Tippett Plot:"),
-                 plotOutput("single_tippettPlot"),
-                 h5("Performance Metrics:"),
-                 verbatimTextOutput("single_metrics")
-               ),
-             )),
-    # ==========================================================================
-    
-    # ======================= Multi-system Comparison (UI) =====================
-    tabPanel("Multi-system Comparison",
-      sidebarLayout(
-        sidebarPanel(
-          fileInput("multi_data_file", "Upload Multiple Data Files ( .csv )", 
-                    accept = ".csv", multiple = TRUE),
-          uiOutput("multi_file_options"),
-          hr(),
-          selectInput("multi_scale", "Choose LR Scale",
-                      choices = c("Raw", "log10(LR)", "ln(LR)"), 
-                      selected = "Raw"),
-          fluidRow(
-            column(6, numericInput("multi_x_min", "X-axis min", value = -5)),
-            column(6, numericInput("multi_x_max", "X-axis max", value = 5))
-          ),
-          fluidRow(
-            column(6, numericInput("multi_y_min", "Y-axis min", value = 0)),
-            column(6, numericInput("multi_y_max", "Y-axis max", value = 1))
-          ),
-          numericInput("multi_font_size", "Font Size", value = 14, min = 6, max = 24),
-          selectInput("multi_fig_down", "Download Format", 
-                      choices = c("PNG" = "png", "PDF" = "pdf", "SVG" = "svg"), 
-                      selected = "png"),
-          downloadButton("multi_downloadPlot", "Download Plot")
-        ),
-        mainPanel(
-          h5("Multi-Tippett Plot:"),
-          plotOutput("multi_tippettPlot"),
-          h5("Performance Metrics:"),
-          verbatimTextOutput("multi_metrics")
-        )
-      )
-    ),
-    # ==========================================================================
-    
-    # ========================= Precision Analysis (UI) ========================
-    tabPanel("Precision Analysis",
-             sidebarLayout(
-               sidebarPanel(
-                 fileInput("precision_data_file", "Upload Data File ( .csv )",
-                           accept = ".csv", multiple = FALSE),
-                 uiOutput("precision_id1_col_select"),
-                 uiOutput("precision_id2_col_select"),
-                 uiOutput("precision_lr_col_select"),
-                 hr(),
-                 selectInput("precision_scale", "Choose LR Scale",
-                             choices = c("Raw", "log10(LR)", "ln(LR)"), 
-                             selected = "Raw"),
-                 numericInput("precision_E", "Evidence LR Value ( raw )", value = NULL, min = 0, step = 0.1),
-                 actionButton("start_analysis", "Perform Analysis", class = "btn-primary"),
-                 hr(),
-                 fluidRow(
-                   column(6, numericInput("precision_x_min", "X-axis min", value = -5)),
-                   column(6, numericInput("precision_x_max", "X-axis max", value = 5))
-                 ),
-                 fluidRow(
-                   column(6, numericInput("precision_y_min", "Y-axis min", value = 0)),
-                   column(6, numericInput("precision_y_max", "Y-axis max", value = 1))
-                 ),
-                 numericInput("precision_font_size", "Font Size", value = 14, min = 6, max = 24),
-                 selectInput("precision_fig_down", "Download Format", 
-                             choices = c("PNG" = "png", "PDF" = "pdf", "SVG" = "svg"), 
-                             selected = "png"),
-                 downloadButton("precision_downloadPlot", "Download Plot"),
-                 downloadButton("precision_downloadData", "Download Precision Data")
-               ),
-               mainPanel(
-                 h5("Tippett Plot ( with precision ):"),
-                 plotOutput("precision_plot"),
-                 h5("Performance Metrics:"),
-                 verbatimTextOutput("precision_metrics"),
-                 h5("Precision Analysis Data:"),
-                 DTOutput("precision_stat")
-               )
-             ))
-    # ==========================================================================
-  )
-)
-
-# Shiny server
+# Path: "server/TippettPlotter_server.R"
 
 server <- function(input, output, session){
   
@@ -178,7 +30,7 @@ server <- function(input, output, session){
     } else if (input$single_scale == "log10(LR)") {
       llr_values <- lr_values
     } else if (input$single_scale == "ln(LR)") {
-      llr_values <- lr_values/log(10)
+      llr_values <- lr_values / log(10)
     } # scale transformation (to log10-scale)
     
     labels <- data()[[input$single_label_col]]
@@ -242,28 +94,28 @@ server <- function(input, output, session){
     lr_values <- as.numeric(data()[[input$single_lr_col]])
     
     if (input$single_scale == "Raw") {
-      lr_values <- lr_values
+      llr_values <- log(lr_values)
     } else if (input$single_scale == "log10(LR)") {
-      lr_values <- 10^(lr_values)
+      llr_values <- lr_values * log(10)
     } else if (input$single_scale == "ln(LR)") {
-      lr_values <- exp(lr_values)
-    } # scale transformation (to Raw-scale)
+      llr_values <- lr_values
+    } # scale transformation (to natural-log-scale)
     
     labels <- data()[[input$single_label_col]]
-    ss_LR <- lr_values[labels == SS_LABEL]
-    ds_LR <- lr_values[labels == DS_LABEL]
+    ss_LLR <- llr_values[labels == SS_LABEL]
+    ds_LLR <- llr_values[labels == DS_LABEL]
     
-    cllr_pooled <- Cllr(ss_LR, ds_LR)
-    cllr_min <- Cllr_min(ss_LR, ds_LR)
-    cllr_cal <- Cllr_cal(ss_LR, ds_LR)
-    eer_result <- EER(ss_LR, ds_LR)
+    cllr_pooled <- cllr(ss_LLR, ds_LLR)
+    cllr_min <- cllr_min(ss_LLR, ds_LLR)
+    cllr_cal <- cllr_cal(ss_LLR, ds_LLR)
+    eer_result <- eer(ss_LLR, ds_LLR)
     
     cat("Cllr (pooled):", cllr_pooled, "\n")
     cat("Cllr (min):", cllr_min, "\n")
     cat("Cllr (cal):", cllr_cal, "\n")
     cat("EER:", eer_result$EER, "\n")
     cat("EER Threshold (log10):", eer_result$threshold_log10, "\n")
-    cat("EER Threshold (raw):", eer_result$threshold_Raw, "\n")
+    cat("EER Threshold (raw):", eer_result$threshold_raw, "\n")
   })
   
   output$single_downloadPlot <- downloadHandler(
@@ -313,13 +165,13 @@ server <- function(input, output, session){
                     choices = c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash"),
                     selected = ifelse(i %% 2 == 1, "solid", "dashed")),
         numericInput(inputId = paste0("multi_E_", i),
-                     label = "Evidence LR Value ( raw )", value = NULL, min = 0, step = 0.1)
+                     label = "Evidence LR ( raw )", value = NULL, min = 0, step = 0.1)
       )
     })
     do.call(tagList, file_options)
   }) # dynamic module
   
-  # Construct muti-tippett plot
+  # Construct multi-tippett plot
   multi_plot_reactive <- reactive({
     req(input$multi_data_file)
     multi_dfs <- multi_data_list()
@@ -392,8 +244,8 @@ server <- function(input, output, session){
         multi_plot <- multi_plot + geom_vline(xintercept = log10(E_value),
                                               color = "darkgreen", linetype = line_type,
                                               linewidth = 0.8)
-        }
       }
+    }
     return(multi_plot)
   })
   
@@ -414,21 +266,21 @@ server <- function(input, output, session){
       lr_values <- as.numeric(df[[lr_col]])
       
       if (input$multi_scale == "Raw") {
-        lr_values <- lr_values
+        llr_values <- log(lr_values)
       } else if (input$multi_scale == "log10(LR)") {
-        lr_values <- 10^(lr_values)
+        llr_values <- lr_values * log(10)
       } else if (input$multi_scale == "ln(LR)") {
-        lr_values <- exp(lr_values)
-      } # scale transformation (to Raw-scale)
+        llr_values <- lr_values
+      } # scale transformation (to natural-log-scale)
       
       labels <- df[[label_col]]
-      ss_LR <- lr_values[labels == SS_LABEL]
-      ds_LR <- lr_values[labels == DS_LABEL]
+      ss_LLR <- llr_values[labels == SS_LABEL]
+      ds_LLR <- llr_values[labels == DS_LABEL]
       
-      cllr_pooled <- Cllr(ss_LR, ds_LR)
-      cllr_min <- Cllr_min(ss_LR, ds_LR)
-      cllr_cal <- Cllr_cal(ss_LR, ds_LR)
-      eer_result <- EER(ss_LR, ds_LR)
+      cllr_pooled <- cllr(ss_LLR, ds_LLR)
+      cllr_min <- cllr_min(ss_LLR, ds_LLR)
+      cllr_cal <- cllr_cal(ss_LLR, ds_LLR)
+      eer_result <- eer(ss_LLR, ds_LLR)
       
       cat("System", i, ":", input$multi_data_file$name[i], "\n")
       cat("  Cllr (pooled):", cllr_pooled, "\n")
@@ -436,7 +288,7 @@ server <- function(input, output, session){
       cat("  Cllr (cal):", cllr_cal, "\n")
       cat("  EER:", eer_result$EER, "\n")
       cat("  EER Threshold (log10):", eer_result$threshold_log10, "\n")
-      cat("  EER Threshold (raw):", eer_result$threshold_Raw, "\n\n")
+      cat("  EER Threshold (raw):", eer_result$threshold_raw, "\n\n")
     }
   })
   
@@ -481,7 +333,9 @@ server <- function(input, output, session){
   })
   
   ci_input_df <- eventReactive(input$start_analysis, {
-    req(precision_data(), input$precision_id1_col, input$precision_id2_col, input$precision_lr_col, input$precision_scale)
+    req(precision_data(),
+        input$precision_id1_col, input$precision_id2_col,
+        input$precision_lr_col, input$precision_scale)
     df <- precision_data()
     
     id1 <- as.character(df[[input$precision_id1_col]])
@@ -489,31 +343,34 @@ server <- function(input, output, session){
     lr  <- suppressWarnings(as.numeric(df[[input$precision_lr_col]]))
     
     if (input$precision_scale == "Raw") {
-      Log10LR <- log10(lr)
+      log10LR <- log10(lr)
     } else if (input$precision_scale == "log10(LR)") {
-      Log10LR <- lr
+      log10LR <- lr
     } else if (input$precision_scale == "ln(LR)") {
-      Log10LR <- lr / log(10)
+      log10LR <- lr / log(10)
     } # scale transformation (to log10-scale)
     
     data.frame(
       id_1 = id1,
       id_2 = id2,
-      Log10LR = Log10LR,
+      log10LR = log10LR,
       stringsAsFactors = FALSE
     )
   })
   
   ci_res <- eventReactive(input$start_analysis, {
     req(ci_input_df())
-    CI_para(ci_input_df())
+    CI_para(df = ci_input_df(),
+            symmetric_trial = input$precision_symmetric_trial,
+            SS_LABEL = SS_LABEL,
+            DS_LABEL = DS_LABEL)
   })
   
   # Performance metrics
   output$precision_metrics <- renderPrint({
     req(ci_res())
     res <- ci_res()
-    cat("Cllr (mean):", res$Cllr_mean, "\n")
+    cat("Cllr (mean):", res$cllr_mean, "\n")
     cat("±95% CI (log10):", res$CI_half_log10, "\n")
   })
   
@@ -537,11 +394,11 @@ server <- function(input, output, session){
     req(ci_res())
     result <- ci_res()$result
     
-    ss_stat <- subset(result, label == "ss")
-    ds_stat <- subset(result, label == "ds")
+    ss_stat <- subset(result, label == SS_LABEL)
+    ds_stat <- subset(result, label == DS_LABEL)
     
     ss_log10LR <- data.frame(
-      lg_LR = sort(ss_stat$Log10LR_mean),
+      lg_LR = sort(ss_stat$log10LR_mean),
       Cumulative_Prop = seq_len(nrow(ss_stat)) / nrow(ss_stat)
     )
     ss_CI_lower <- data.frame(
@@ -554,7 +411,7 @@ server <- function(input, output, session){
     )
     
     ds_log10LR <- data.frame(
-      lg_LR = sort(ds_stat$Log10LR_mean, decreasing = TRUE),
+      lg_LR = sort(ds_stat$log10LR_mean, decreasing = TRUE),
       Cumulative_Prop = seq_len(nrow(ds_stat)) / nrow(ds_stat)
     )
     ds_CI_lower <- data.frame(
@@ -653,8 +510,3 @@ server <- function(input, output, session){
   )
   # ============================================================================
 }
-
-# Shiny application
-options(shiny.maxRequestSize = 300*1024^2)
-shinyApp(ui = ui, server = server)
-

@@ -1,36 +1,56 @@
 # Path: "metric/TippettPlot.R"
-# Tippett Plot (for quick check purpose)
+# Tippett plot drawing function (only for quick check purpose)
+
+# Input:
+# ss_llr - same-source natural-log-likelihood-ratio [numeric vector]
+# ds_llr - different-source natural-log-likelihood-ratio [numeric vector]
+
+# output:
+# tippett_plot - ggplot object showing a Tippett plot in log10-scale [ggplot]
+
+# ------------------------------------------------------------------------------
+# Updated: 2026/05/30
+# Author: Deng, Guangmou
+# Contact: guangmou01@outlook.com
+# ------------------------------------------------------------------------------
 
 if (!require("ggplot2")) install.packages("ggplot2", dependencies = TRUE)
 library(ggplot2)
 
-tippett.plot <- function(ss_lr, ds_lr,
+tippett_plot <- function(ss_llr, ds_llr,
                          x_lab = expression(log[10](Lambda)), 
                          y_lab = "cumulative proportion",
                          line.type = 1,
-                         font = "sans", font.size = 14) {
+                         font = "sans",
+                         font.size = 16){
   
-  ss_lr <- sort(ss_lr, decreasing = FALSE)
+  ss_llr <- as.numeric(ss_llr)
+  ds_llr <- as.numeric(ds_llr)
+  
+  ss_llr <- ss_llr[is.finite(ss_llr)]
+  ds_llr <- ds_llr[is.finite(ds_llr)]
+  
+  ss_llr <- sort(ss_llr, decreasing = FALSE)
   data_ss <- data.frame(
-    lg_LR = log10(ss_lr),
-    Cumulative_Prop = seq_along(ss_lr) / length(ss_lr)
+    log10LR = ss_llr/log(10),
+    Cumulative_Prop = seq_along(ss_llr) / length(ss_llr)
   )
   
-  ds_lr <- sort(ds_lr, decreasing = TRUE)
+  ds_llr <- sort(ds_llr, decreasing = TRUE)
   data_ds <- data.frame(
-    lg_LR = log10(ds_lr),
-    Cumulative_Prop = seq_along(ds_lr) / length(ds_lr)
+    log10LR = ds_llr/log(10),
+    Cumulative_Prop = seq_along(ds_llr) / length(ds_llr)
   )
   
-  ggplot() +
-    geom_line(data = data_ds, aes(x = lg_LR, y = Cumulative_Prop),
+  tippett_plot <- ggplot() +
+    geom_line(data = data_ds, aes(x = log10LR, y = Cumulative_Prop),
               color = "blue", linetype = line.type) +
-    geom_line(data = data_ss, aes(x = lg_LR, y = Cumulative_Prop),
+    geom_line(data = data_ss, aes(x = log10LR, y = Cumulative_Prop),
               color = "red", linetype = line.type) +
     geom_vline(xintercept = 0, color = "black", linetype = "dashed", linewidth = 0.5) +
-    scale_x_continuous(limits = range(c(data_ss$lg_LR, data_ds$lg_LR)),
+    scale_x_continuous(limits = range(c(data_ss$log10LR, data_ds$log10LR)),
                        expand = c(0, 0),
-                       breaks = pretty(c(data_ss$lg_LR, data_ds$lg_LR), n = 8)) +
+                       breaks = pretty(c(data_ss$log10LR, data_ds$log10LR), n = 8)) +
     scale_y_continuous(limits = c(0, 1),
                        expand = c(0, 0),
                        breaks = seq(0, 1, length.out = 11)) +
@@ -49,4 +69,6 @@ tippett.plot <- function(ss_lr, ds_lr,
       plot.background = element_rect(fill = "transparent", color = NA),
       plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm")
     )
+  
+  return(tippett_plot)
 }

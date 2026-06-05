@@ -1,8 +1,8 @@
 # FLRToolkit
 
-### - Forensic Likelihood Ratio Evaluation Toolkit (BETA Version)
+### Forensic Likelihood Ratio Evaluation Toolkit (BETA 2026.06)
 
-October 8, 2025\
+June 5, 2026\
 Deng, Guangmou\
 [guangmou01\@outlook.com](mailto:guangmou01@outlook.com)
 

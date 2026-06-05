@@ -1,23 +1,27 @@
 # Path: "metric/ECE.R"
-# Empirical Cross Entropy (ECE)
+# Empirical Cross Entropy (ECE) function
 
 # Input:
-# log_prior_odds - prior odds in log10 scale [numeric]
-# ss_lr - same-source likelihood ratios in Raw-scale [numeric vector]
-# ds_lr - different-source likelihood ratios in Raw-scale [numeric vector]
+# log10_prior_odds - prior odds in log10 scale [numeric]
+# ss_llr - same-source natural-log-likelihood-ratio [numeric vector]
+# ds_llr - different-source natural-log-likelihood-ratio [numeric vector]
 
 # Output:
-# ECE_val - Empirical Cross Entropy
+# ECE_val - ECE value at the 'log10_prior_odds'
 
-ECE <- function(log_prior_odds, ss_lr, ds_lr) {
+# ------------------------------------------------------------------------------
+# Updated: 2026/06/02
+# Author: Deng, Guangmou
+# Contact: guangmou01@outlook.com
+# ------------------------------------------------------------------------------
+
+ECE <- function(log10_prior_odds,
+                ss_llr, ds_llr) {
   
-  tar_llrs <- log(as.numeric(ss_lr))
-  nontar_llrs <- log(as.numeric(ds_lr))
+  tar_llrs <- as.numeric(ss_llr)
+  nontar_llrs <- as.numeric(ds_llr)
   
-  Nss <- length(tar_llrs)
-  Nds <- length(nontar_llrs)
-  
-  prior_odds <- 10^log_prior_odds
+  prior_odds <- 10^log10_prior_odds
   Ptar <- prior_odds / (1 + prior_odds)
   logit_prior <- log(Ptar) - log(1 - Ptar)
   

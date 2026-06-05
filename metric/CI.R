@@ -3,58 +3,70 @@
 
 # Parametric Procedure Described in:
 # Morrison, G. S., Thiruvaran, T., & Epps, J. (2010).
-# Estimating the Precision of the Likelihood-Ratio Output
-# of a Forensic-Voice-Comparison System.
+# Estimating the precision of the Likelihood-ratio output of a forensic-voice-comparison system.
 # The Speaker and Language Recognition Workshop, 63-70.
 
 # Input:
-#   df - A data.frame with at least the following columns:
-#        * id_1    : character or factor, ID of the 1st individual
-#        * id_2    : character or factor, ID of the 2nd individual
-#        * Log10LR : numeric, log10-likelihood-ratio values for the trial
+# df - A data.frame with at least the following columns:
+#      id_1    : ID of the 1st individual [character or factor]
+#      id_2    : ID of the 2nd individual [character or factor]
+#      log10LR : log10-likelihood-ratio values for the trial [numeric]
+# symmetric_trial - whether to treat (id_1, id_2) and (id_2, id_1) as the same trial [logical]
 #
-#        Notes:
-#        - Each row corresponds to a trial (id_1, id_2).
-#        - Order of id_1 and id_2 does not matter; (A,B) and (B,A) are treated as the same trial.
-#        - Multiple rows for the same trial are required (repeated measurements).
+# Notes:
+#    - Each row corresponds to a ID-trial (id_1, id_2).
+#    - Multiple rows for the same trial are required (repeated measurements).
 #
 # Output:
-#   Cllr_mean - Cllr calculated on the means of the groups defined in the description of the 95% CI metric.
-#   CI_half_log10 - 95% CI estimation in log10-scale
-#   result - A data.frame where each row corresponds to one unique trial.
-#       * id_1         : normalized first ID (the smaller after sorting the pair)
-#       * id_2         : normalized second ID (the larger after sorting the pair)
-#       * trial_key    : unique trial identifier in the format "id_1|id_2"
-#       * n            : count of trials within the trial key
-#       * label        : "ss" if same-source (id_1 == id_2), otherwise "ds"
-#       * Log10LR_mean : mean log10-likelihood-ratio for the trial
-#       * LR_mean      : mean likelihood-ratio for the trial
-#       * CI_half      : pooled half-width of the 95% confidence interval (t-distribution-based)
-#       * CI_lower     : lower bound of the 95% CI
-#       * CI_upper     : upper bound of the 95% CI
+# cllr_mean - Cllr calculated on the means of the groups defined in the description of the 95% CI metric.
+# CI_half_log10 - 95% CI estimation in log10-scale (t-distribution-based)
+# result - A data.frame where each row corresponds to one unique trial.
+#          id_1         : 1st ID
+#          id_2         : 2nd ID
+#          trial_key    : unique trial identifier in the format "id_1|id_2"
+#          n            : count of trials within the trial key
+#          label        : "ss" if same-source (id_1 == id_2), otherwise "ds"
+#          log10LR_mean : mean log10-likelihood-ratio for the trial
+#          LR_mean      : mean likelihood-ratio for the trial
+#          CI_half      : pooled half-width of the 95% confidence interval 
+#          CI_lower     : lower bound of the 95% CI
+#          CI_upper     : upper bound of the 95% CI
 
-CI_para <- function(df) {
-  stopifnot(all(c("id_1", "id_2", "Log10LR") %in% names(df)))
+# ------------------------------------------------------------------------------
+# Updated: 2026/05/31
+# Author: Deng, Guangmou
+# Contact: guangmou01@outlook.com
+# ------------------------------------------------------------------------------
+
+CI_para <- function(df,
+                    symmetric_trial = FALSE,
+                    SS_LABEL = "ss",
+                    DS_LABEL = "ds") {
+  
+  stopifnot(all(c("id_1", "id_2", "log10LR") %in% names(df)))
   
   df$id_1 <- as.character(df$id_1)
   df$id_2 <- as.character(df$id_2)
   
-  pair_sorted <- t(apply(df[, c("id_1", "id_2")], 1, sort))
-  df$id_1u <- pair_sorted[, 1]
-  df$id_2u <- pair_sorted[, 2]
+  if (symmetric_trial) {
+    pair_sorted <- t(apply(df[, c("id_1", "id_2")], 1, sort))
+    df$id_1 <- pair_sorted[, 1]
+    df$id_2 <- pair_sorted[, 2]
+  }
   
-  df$trial_key <- paste(df$id_1u, df$id_2u, sep = "|")
-  df$label <- ifelse(df$id_1u == df$id_2u, "ss", "ds")
+  df$trial_key <- paste(df$id_1, df$id_2, sep = "|")
+  df$label <- ifelse(df$id_1 == df$id_2, SS_LABEL, DS_LABEL)
   
-  unique_keys <- unique(df$trial_key)
+  split_log10 <- split(df$log10LR, df$trial_key)
   
-  ns <- tapply(df$Log10LR, df$trial_key, function(x) sum(is.finite(x)))
-  means <- tapply(df$Log10LR, df$trial_key, function(x) {
+  ns <- sapply(split_log10, function(x) sum(is.finite(x)))
+  
+  means <- sapply(split_log10, function(x) {
     x <- x[is.finite(x)]
     if (length(x) > 0) mean(x) else NA_real_
   })
   
-  weighted_SS <- tapply(df$Log10LR, df$trial_key, function(x) {
+  weighted_SS <- sapply(split_log10, function(x) {
     x <- x[is.finite(x)]
     if (length(x) > 0) {
       m <- mean(x)
@@ -65,49 +77,50 @@ CI_para <- function(df) {
   })
   
   std_LR <- sqrt(mean(weighted_SS, na.rm = TRUE))
-  num_LRs <- length(df$Log10LR)
+  num_LRs <- length(df$log10LR)
+  unique_keys <- names(split_log10)
   num_unique_pairs <- length(unique_keys)
   df_total <- num_LRs - num_unique_pairs - 1
   
-  CI_half_log10 <- if (is.finite(std_LR) && df_total > 0) {
+  CI_half_log10 <- if (is.finite(std_LR) && df_total > 0){
     qt(0.975, df = df_total) * std_LR
   } else {
-    NA_real_
+    NA_real_ 
   }
   
   first_idx <- match(unique_keys, df$trial_key)
   
   result <- data.frame(
-    id_1 = df$id_1u[first_idx],
-    id_2 = df$id_2u[first_idx],
+    id_1 = df$id_1[first_idx],
+    id_2 = df$id_2[first_idx],
     trial_key = unique_keys,
     n = as.integer(ns[unique_keys]),
     label = df$label[first_idx],
-    Log10LR_mean = as.numeric(means[unique_keys]),
+    log10LR_mean = as.numeric(means[unique_keys]),
     LR_mean = 10 ** as.numeric(means[unique_keys]),
-    CI_half = rep(CI_half_log10, length(unique_keys)),
+    CI_half = rep(CI_half_log10, num_unique_pairs),
     stringsAsFactors = FALSE
   )
-  
-  result$CI_lower <- result$Log10LR_mean - result$CI_half
-  result$CI_upper <- result$Log10LR_mean + result$CI_half
-  
+  result$CI_lower <- result$log10LR_mean - result$CI_half
+  result$CI_upper <- result$log10LR_mean + result$CI_half
   result$trial_key <- factor(result$trial_key)
-  result$label <- factor(result$label, levels = c("ss", "ds"))
+  result$label <- factor(result$label, levels = c(SS_LABEL, DS_LABEL))
   
-  ss_m_lr <- result$LR_mean[result$label == "ss"]
-  ds_m_lr <- result$LR_mean[result$label == "ds"]
+  ss_m_lr <- result$LR_mean[result$label == SS_LABEL]
+  ds_m_lr <- result$LR_mean[result$label == DS_LABEL]
   n_m_ss <- length(ss_m_lr)
   n_m_ds <- length(ds_m_lr)
   punish_m_ss <- log(1 + (1 / ss_m_lr), base = 2)
   punish_m_ds <- log(1 + ds_m_lr, base = 2)
-  Cllr_mean <- 0.5 * ((1 / n_m_ss) * sum(punish_m_ss) + (1 / n_m_ds) * sum(punish_m_ds))
+  cllr_mean <- 0.5 * ((1 / n_m_ss) * sum(punish_m_ss) + (1 / n_m_ds) * sum(punish_m_ds))
   
-  out_list <- list(
-    Cllr_mean = Cllr_mean,
-    CI_half_log10 = CI_half_log10,
-    result = result
-  )
+  res <- list(cllr_mean = cllr_mean,
+              CI_half_log10 = CI_half_log10,
+              result = result)
   
-  return(out_list)
+  return(res)
 }
+
+
+
+

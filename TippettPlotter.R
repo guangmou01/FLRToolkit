@@ -1,9 +1,9 @@
 # ------------------------------------------------------------------------------
-# Updated: 2026/06/02
+# Updated: 2026/05/31
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
-APP_VERSION <- "Version 2.0.0"
+APP_VERSION <- "Version 3.0.0"
 SS_LABEL <- "ss"
 DS_LABEL <- "ds"
 
@@ -15,15 +15,13 @@ library(shiny)
 library(DT)
 library(ggplot2)
 
-source("calibration/train_llr_fusion_robust.R")
-source("calibration/train_llr_fusion_regularized.R")
-source("calibration/lin_fusion.R")
 source("metric/Cllr.R")
 source("metric/EER.R")
-source("metric/TippettPlot.R")
+source("metric/CI.R")
 
-source("ui/LogRegCalibrator_ui.R", local = TRUE)
-source("server/LogRegCalibrator_server.R", local = TRUE)
+source("ui/TippettPlotter_ui.R", local = TRUE)
+source("server/TippettPlotter_server.R", local = TRUE)
 
-options(shiny.maxRequestSize = 600*1024^2)
+options(shiny.maxRequestSize = 300*1024^2)
 shinyApp(ui = ui, server = server)
+

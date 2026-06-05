@@ -1,18 +1,17 @@
-# Path: "func/biGaussian_robust.R"
-# R implementation of the Bi-Gaussianized calibration/fusion (robust version)
-# Based on Morrison (2024)
+# Path: "calibration/biGaussian_robust.R"
+# R implementation of the Bi-Gaussianized calibration/fusion (robust LogReg
+# variant) based on Morrison (2024)
 
 # This implementation combines logistic regression calibration/fusion (robust version)
-# with a bi-Gaussianized procedure in calibrating LR-like scores to achieve well-calibrated
-# LR outputs.
+# with a bi-Gaussianized procedure.
 
 # - Workflow:
 #   1. Train a robust logistic regression model on target (ss) and non-target (ds) scores.
 #   2. Transform scores into "quasi-scores" (pre-calibrated log-likelihood ratios).
-#   3. Estimate the Log-likelihood-ratio Cost (Cllr) and map it to the variance (σ²) 
-#      of the target bi-Gaussianized distribution (Morrison, 2024).
+#   3. Estimate the log-likelihood-ratio Cost (Cllr) and map it to the variance (σ²) 
+#      of the target bi-Gaussian distribution (Morrison, 2024).
 #   4. Fit a weighted empirical CDF on the quasi-scores.
-#   5. Construct a target bi-Gaussianized CDF model and store both CDFs.
+#   5. Construct a target bi-Gaussian CDF model and store both CDFs.
 #   6. Use above pipeline to map new scores to calibrated log-LR values by biGaussian_calibrator().
 
 # References:
@@ -22,14 +21,14 @@
 # https://doi.org/10.1093/lpr/mgae004
 
 # Input:
-#   targets        - [n_ss × d] matrix of log-LR scores for same-source trials
-#   non_targets    - [n_ds × d] matrix of log-LR scores for different-source trials
-#   prior          - prior probability of the target hypothesis (default = 0.5)
-#   robust_weight  - robustness weight for class imbalance and outlier resistance
-#   max_iter       - maximum iterations for logistic regression (default = 5000)
-#   uncal_score    - [n × d] matrix of uncalibrated log-LR scores to calibrate
-#   grid_k         - range (in multiples of σ) for constructing the interpolation grid
-#   grid_len       - number of grid points (default = 10000)
+# targets - [n_ss × d] matrix of log-LR scores for same-source trials
+# non_targets - [n_ds × d] matrix of log-LR scores for different-source trials
+# prior - prior probability of the target hypothesis (default = 0.5)
+# robust_weight - robustness weight for class imbalance and outlier resistance
+# max_iter - maximum iterations for logistic regression (default = 5000)
+# uncal_score - [n × d] matrix of uncalibrated log-LR scores to calibrate
+# grid_k - range (in multiples of σ) for constructing the interpolation grid
+# grid_len - number of grid points (default = 10000)
 
 # Example of the input score matrix:
 #         sys-1 sys-2  ...  sys-d
@@ -39,27 +38,27 @@
 # trial-n [0.3,  1.4,  ...,  0.8]
 
 # Output:
-#   train_biGaussian_robust() -> list containing:
-#       fusion_w      - learned LogReg calibration/fusion weights
-#       Cllr          - estimated Cllr
-#       sigma2_target - variance of the bi-Gaussianized distribution
-#       weighted_ecdf - empirical CDF function of quasi-scores
-#       bigmm_cdf     - bi-Gaussianized CDF function
+# train_biGaussian_robust() -> list containing:
+#       fusion_w       - fitted LogReg calibration/fusion weights
+#       Cllr           - target Cllr
+#       sigma2_target  - variance of the target bi-Gaussian distribution
+#       weighted_ecdf  - empirical CDF function fitted on quasi-scores
+#       bigmm_cdf      - bi-Gaussian CDF function
 #
-#   biGaussian_robust() -> list containing:
-#       calibrated_lnLR - calibrated log-likelihood ratios for the input scores
+# biGaussian_robust() -> list containing:
+#       calibrated_lnLR - calibrated natural-log-likelihood ratios for input scores
 #       fusion_w        - learned LogReg calibration/fusion weights
 #       Cllr            - estimated Cllr
-#       sigma2_target   - variance of the bi-Gaussianized distribution
+#       sigma2_target   - variance of the target bi-Gaussian distribution
 
 # ------------------------------------------------------------------------------
-# Updated: October 1, 2025
+# Updated: 2026/06/02
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
 
-source("func/train_llr_fusion_robust.R")
-source("func/biGaussian_calibrator.R")
+source("calibration/train_llr_fusion_robust.R")
+source("calibration/biGaussian_calibrator.R")
 
 train_biGaussian_robust <- function(targets, non_targets,
                                     prior = 0.5, robust_weight = 0,
@@ -86,10 +85,8 @@ train_biGaussian_robust <- function(targets, non_targets,
   quasi_ds <- as.vector(non_targets %*% beta + alpha)
   
   # Estimate Cllr
-  cal_ss_lr <- exp(quasi_ss)
-  cal_ds_lr <- exp(quasi_ds)
-  punish_ss <- log(1 + 1 / cal_ss_lr, base = 2)
-  punish_ds <- log(1 + cal_ds_lr, base = 2)
+  punish_ss <- log1p(exp(-quasi_ss)) / log(2)
+  punish_ds <- log1p(exp(quasi_ds))  / log(2)
   Cllr <- 0.5 * (mean(punish_ss) + mean(punish_ds))
   
   # Map the Cllr into the sigma2 of the target bi-Gaussianized model

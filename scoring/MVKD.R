@@ -1,6 +1,6 @@
-# Path: "func/MVKD.R"
+# Path: "scoring/MVKD.R"
 # R implementation of MVKD-based LR function
-# Based on Aitken & Lucy (2004), and Morrison (2007)
+# based on Aitken & Lucy (2004), and Morrison (2007)
 
 # References:
 
@@ -17,16 +17,16 @@
 # Input:
 # off_data - offender measurements (rows = observations, columns = features) [numeric matrix]
 # sus_data - suspect measurements (rows = observations, columns = features) [numeric matrix]
-#  bg_data - background dataset [dataframe]
-#            1. the first column must be the ID labels [character or numeric]
-#            2. the remaining columns are features [numeric]
+# bg_data - background/reference dataset [dataframe]
+#           1. the first column must be the ID labels [character or numeric]
+#           2. the remaining columns are features [numeric]
 
 # Output:
-#  bg_para - background parameters estimated from bg_data [list]
-#      llr - likelihood ratio in log10-scale [numeric]
+# bg_para - background parameters estimated from bg_data [list]
+# llr - natural-log-likelihood-ratio [numeric]
 
 # ------------------------------------------------------------------------------
-# Updated: September 4, 2025
+# Updated: 2026/06/04
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
@@ -40,11 +40,8 @@ sse <- function(x) {
 
 # function used for estimating background parameters
 MVKD_train <- function(bg_data) {
-  if (missing(bg_data)) {
-    stop("Please provide [bg_data].")
-  }
-
-  bg_ids  <- as.factor(bg_data[[1]])  # the 1st column should be ID labels
+  
+  bg_ids  <- as.factor(bg_data[[1]])  # the 1st column must be ID labels
   bg_meas <- as.matrix(bg_data[, -1, drop = FALSE])
   
   num_observations <- nrow(bg_meas)
@@ -89,22 +86,12 @@ MVKD_train <- function(bg_data) {
   return(bg_para)
 }
 
-# function used for scoring log10LR by background parameters
+# function used for scoring ln(LR) by background parameters
 MVKD_scorer <- function(off_data, sus_data, bg_para) {
-  if (missing(off_data) || missing(sus_data) || missing(bg_para)) {
-    stop("Please provide [off_data], [sus_data], and [bg_para].")
-  }
   
   off_data <- as.matrix(off_data)
   sus_data <- as.matrix(sus_data)
   
-  if (ncol(off_data) != ncol(sus_data)) {
-    stop("The column number of [off_data] and [sus_data] is inconsistent!")
-  }
-  if (ncol(off_data) != bg_para$num_variables) {
-    stop("The column number of [off_data] and [bg_data] (after removing the id column) is inconsistent!")
-  }
-
   suspect_num_measures  <- nrow(sus_data)
   offender_num_measures <- nrow(off_data)
   
@@ -186,13 +173,13 @@ MVKD_scorer <- function(off_data, sus_data, bg_para) {
   
   denominator <- denom1 * denom2 * denom3 * denom4
   
-  llr <- log10(numerator) - log10(denominator)
+  llr <- log(numerator) - log(denominator)
   
   if (is.infinite(llr) && llr > 0) {
-    llr <- log(.Machine$double.xmax) / log(10)
+    llr <- log(.Machine$double.xmax)
   }
   if (is.infinite(llr) && llr < 0) {
-    llr <- log(.Machine$double.xmin) / log(10)
+    llr <- log(.Machine$double.xmin)
   }
   
   return(as.numeric(llr))
@@ -217,5 +204,6 @@ MVKD_llr <- function(off_data, sus_data, bg_data) {
   
   bg_para <- MVKD_train(bg_data)
   llr <- MVKD_scorer(off_data, sus_data, bg_para)
+  
   return(llr)
 }

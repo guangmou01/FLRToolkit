@@ -1,5 +1,11 @@
-# Path: "func/cg_dir.R"
+# Path: "calibration/cg_dir.R"
 # Conjugate Gradient in LogReg training.
+
+# ------------------------------------------------------------------------------
+# Updated: 2026/06/02
+# Author: Deng, Guangmou
+# Contact: guangmou01@outlook.com
+# ------------------------------------------------------------------------------
 
 cg_dir <- function(old_dir, grad, old_grad) {
   g <- grad
