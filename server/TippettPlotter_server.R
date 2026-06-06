@@ -20,10 +20,21 @@ server <- function(input, output, session){
                 choices = names(data()))
   }) # dynamic module
   
-  single_plot_reactive <- reactive({
+  single_analysis_data <- eventReactive(input$single_start_analysis, {
     
     req(input$single_label_col, input$single_lr_col)
-    lr_values <- as.numeric(data()[[input$single_lr_col]])
+    
+    df <- data()
+    lr_values <- as.numeric(df[[input$single_lr_col]])
+    labels <- df[[input$single_label_col]]
+    
+    list(lr_values = lr_values, labels = labels)
+  })
+  
+  single_plot_reactive <- reactive({
+    
+    single_data <- single_analysis_data()
+    lr_values <- single_data$lr_values
     
     if (input$single_scale == "Raw") {
       llr_values <- log10(lr_values)
@@ -33,7 +44,7 @@ server <- function(input, output, session){
       llr_values <- lr_values / log(10)
     } # scale transformation (to log10-scale)
     
-    labels <- data()[[input$single_label_col]]
+    labels <- single_data$labels
     ss_LLR <- llr_values[labels == SS_LABEL]
     ds_LLR <- llr_values[labels == DS_LABEL]
     
@@ -44,21 +55,23 @@ server <- function(input, output, session){
     
     single_plot <- ggplot() +
       geom_line(data = data_ss, aes(x = LLR, y = Cumulative_Prop), color = "red",
-                linewidth = 0.8) +
+                linewidth = 0.8, na.rm = TRUE) +
       geom_line(data = data_ds, aes(x = LLR, y = Cumulative_Prop), color = "blue",
-                linewidth = 0.8) +
+                linewidth = 0.8, na.rm = TRUE) +
       geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
       labs(x = expression(log[10](Lambda)),
            y = "cumulative proportion") +
       scale_x_continuous(
-        limits = c(input$single_x_min, input$single_x_max),
         expand = c(0, 0),
         breaks = pretty(c(input$single_x_min, input$single_x_max), n = 8)
       ) +
       scale_y_continuous(
-        limits = c(input$single_y_min, input$single_y_max),
         expand = c(0, 0),
         breaks = seq(input$single_y_min, input$single_y_max, length.out = 11)
+      ) +
+      coord_cartesian(
+        xlim = c(input$single_x_min, input$single_x_max),
+        ylim = c(input$single_y_min, input$single_y_max)
       ) +
       theme_minimal(base_size = input$single_font_size) +
       theme(legend.position = "none",
@@ -90,8 +103,8 @@ server <- function(input, output, session){
   
   output$single_metrics <- renderPrint({
     
-    req(input$single_label_col, input$single_lr_col)
-    lr_values <- as.numeric(data()[[input$single_lr_col]])
+    single_data <- single_analysis_data()
+    lr_values <- single_data$lr_values
     
     if (input$single_scale == "Raw") {
       llr_values <- log(lr_values)
@@ -101,7 +114,7 @@ server <- function(input, output, session){
       llr_values <- lr_values
     } # scale transformation (to natural-log-scale)
     
-    labels <- data()[[input$single_label_col]]
+    labels <- single_data$labels
     ss_LLR <- llr_values[labels == SS_LABEL]
     ds_LLR <- llr_values[labels == DS_LABEL]
     
@@ -171,24 +184,59 @@ server <- function(input, output, session){
     do.call(tagList, file_options)
   }) # dynamic module
   
+  multi_analysis_data <- eventReactive(input$multi_start_analysis, {
+    
+    req(input$multi_data_file)
+    
+    multi_dfs <- multi_data_list()
+    n_files <- length(multi_dfs)
+    
+    out <- vector("list", n_files)
+    
+    for (i in 1:n_files) {
+      
+      df <- multi_dfs[[i]]
+      
+      label_col <- input[[paste0("multi_label_col_", i)]]
+      lr_col <- input[[paste0("multi_lr_col_", i)]]
+      line_type <- input[[paste0("multi_line_type_", i)]]
+      E_value <- input[[paste0("multi_E_", i)]]
+      
+      if (is.null(label_col) || is.null(lr_col)) next
+      
+      lr_values <- as.numeric(df[[lr_col]])
+      labels <- df[[label_col]]
+      
+      out[[i]] <- list(
+        file_name = input$multi_data_file$name[i],
+        lr_values = lr_values,
+        labels = labels,
+        line_type = line_type,
+        E_value = E_value
+      )
+    }
+    out
+  })
+  
   # Construct multi-tippett plot
   multi_plot_reactive <- reactive({
-    req(input$multi_data_file)
-    multi_dfs <- multi_data_list()
+    multi_data <- multi_analysis_data()
     
     multi_plot <- ggplot() +
       geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
       labs(x = expression(log[10](Lambda)),
            y = "cumulative proportion") +
       scale_x_continuous(
-        limits = c(input$multi_x_min, input$multi_x_max),
         expand = c(0, 0),
         breaks = pretty(c(input$multi_x_min, input$multi_x_max), n = 8)
       ) +
       scale_y_continuous(
-        limits = c(input$multi_y_min, input$multi_y_max),
         expand = c(0, 0),
         breaks = seq(input$multi_y_min, input$multi_y_max, length.out = 11)
+      ) +
+      coord_cartesian(
+        xlim = c(input$multi_x_min, input$multi_x_max),
+        ylim = c(input$multi_y_min, input$multi_y_max)
       ) +
       theme_minimal(base_size = input$multi_font_size) +
       theme(legend.position = "none",
@@ -203,17 +251,16 @@ server <- function(input, output, session){
             plot.background = element_rect(fill = "transparent", color = NA),
             plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"))
     
-    n_files <- length(multi_dfs)
+    n_files <- length(multi_data)
     for (i in 1:n_files) {
-      df <- multi_dfs[[i]]
-      label_col <- input[[paste0("multi_label_col_", i)]]
-      lr_col <- input[[paste0("multi_lr_col_", i)]]
-      line_type <- input[[paste0("multi_line_type_", i)]]
-      E_value <- input[[paste0("multi_E_", i)]]
       
-      if(is.null(label_col) || is.null(lr_col)) next
+      one_data <- multi_data[[i]]
+      if (is.null(one_data)) next
       
-      lr_values <- as.numeric(df[[lr_col]])
+      lr_values <- one_data$lr_values
+      labels <- one_data$labels
+      line_type <- one_data$line_type
+      E_value <- one_data$E_value
       
       if (input$multi_scale == "Raw") {
         llr_values <- log10(lr_values)
@@ -223,7 +270,6 @@ server <- function(input, output, session){
         llr_values <- lr_values/log(10)
       } # scale transformation (to log10-scale)
       
-      labels <- df[[label_col]]
       ss_LLR <- llr_values[labels == SS_LABEL]
       ds_LLR <- llr_values[labels == DS_LABEL]
       
@@ -235,11 +281,11 @@ server <- function(input, output, session){
       multi_plot <- multi_plot + geom_line(data = data_ss,
                                            aes(x = LLR, y = Cumulative_Prop),
                                            color = "red", linetype = line_type,
-                                           linewidth = 0.8)
+                                           linewidth = 0.8, na.rm = TRUE)
       multi_plot <- multi_plot + geom_line(data = data_ds,
                                            aes(x = LLR, y = Cumulative_Prop),
                                            color = "blue", linetype = line_type,
-                                           linewidth = 0.8)
+                                           linewidth = 0.8, na.rm = TRUE)
       if (!is.null(E_value) && !is.na(E_value) && E_value > 0) {
         multi_plot <- multi_plot + geom_vline(xintercept = log10(E_value),
                                               color = "darkgreen", linetype = line_type,
@@ -254,16 +300,17 @@ server <- function(input, output, session){
   })
   
   output$multi_metrics <- renderPrint({
-    req(input$multi_data_file)
-    multi_dfs <- multi_data_list()
     
-    n_files <- length(multi_dfs)
+    multi_data <- multi_analysis_data()
+    
+    n_files <- length(multi_data)
     for(i in 1:n_files){
-      df <- multi_dfs[[i]]
-      label_col <- input[[paste0("multi_label_col_", i)]]
-      lr_col <- input[[paste0("multi_lr_col_", i)]]
-      if(is.null(label_col) || is.null(lr_col)) next
-      lr_values <- as.numeric(df[[lr_col]])
+      
+      one_data <- multi_data[[i]]
+      if (is.null(one_data)) next
+      
+      lr_values <- one_data$lr_values
+      labels <- one_data$labels
       
       if (input$multi_scale == "Raw") {
         llr_values <- log(lr_values)
@@ -273,7 +320,6 @@ server <- function(input, output, session){
         llr_values <- lr_values
       } # scale transformation (to natural-log-scale)
       
-      labels <- df[[label_col]]
       ss_LLR <- llr_values[labels == SS_LABEL]
       ds_LLR <- llr_values[labels == DS_LABEL]
       
@@ -282,7 +328,7 @@ server <- function(input, output, session){
       cllr_cal <- cllr_cal(ss_LLR, ds_LLR)
       eer_result <- eer(ss_LLR, ds_LLR)
       
-      cat("System", i, ":", input$multi_data_file$name[i], "\n")
+      cat("System", i, ":", one_data$file_name, "\n")
       cat("  Cllr (pooled):", cllr_pooled, "\n")
       cat("  Cllr (min):", cllr_min, "\n")
       cat("  Cllr (cal):", cllr_cal, "\n")
@@ -425,31 +471,33 @@ server <- function(input, output, session){
     
     precision_plot <- ggplot() +
       geom_line(data = ss_log10LR, aes(x = lg_LR, y = Cumulative_Prop), color = "red",
-                linewidth = 0.8) +
+                linewidth = 0.8, na.rm = TRUE) +
       geom_line(data = ss_CI_lower, aes(x = lg_LR, y = Cumulative_Prop), color = "red",
-                linewidth = 0.8, linetype = "dotted") +
+                linewidth = 0.8, linetype = "dotted", na.rm = TRUE) +
       geom_line(data = ss_CI_upper, aes(x = lg_LR, y = Cumulative_Prop), color = "red",
-                linewidth = 0.8, linetype = "dotted") +
+                linewidth = 0.8, linetype = "dotted", na.rm = TRUE) +
       
       geom_line(data = ds_log10LR, aes(x = lg_LR, y = Cumulative_Prop), color = "blue",
-                linewidth = 0.8) +
+                linewidth = 0.8, na.rm = TRUE) +
       geom_line(data = ds_CI_lower, aes(x = lg_LR, y = Cumulative_Prop), color = "blue",
-                linewidth = 0.8, linetype = "dotted") +
+                linewidth = 0.8, linetype = "dotted", na.rm = TRUE) +
       geom_line(data = ds_CI_upper, aes(x = lg_LR, y = Cumulative_Prop), color = "blue",
-                linewidth = 0.8, linetype = "dotted") +
+                linewidth = 0.8, linetype = "dotted", na.rm = TRUE) +
       
       geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
       labs(x = expression(log[10](Lambda)),
            y = "cumulative proportion") +
       scale_x_continuous(
-        limits = c(input$precision_x_min, input$precision_x_max),
         expand = c(0, 0),
         breaks = pretty(c(input$precision_x_min, input$precision_x_max), n = 8)
       ) +
       scale_y_continuous(
-        limits = c(input$precision_y_min, input$precision_y_max),
         expand = c(0, 0),
         breaks = seq(input$precision_y_min, input$precision_y_max, length.out = 11)
+      ) +
+      coord_cartesian(
+        xlim = c(input$precision_x_min, input$precision_x_max),
+        ylim = c(input$precision_y_min, input$precision_y_max)
       ) +
       theme_minimal(base_size = input$precision_font_size) +
       theme(

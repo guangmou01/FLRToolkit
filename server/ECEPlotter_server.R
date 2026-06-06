@@ -35,10 +35,24 @@ server <- function(input, output, session){
                 choices = names(single_data()))
   }) # dynamic module
   
-  single_plot_reactive <- reactive({
+  single_analysis_data <- eventReactive(input$single_start_analysis, {
     
     req(input$single_label_col, input$single_lr_col)
-    lr_values <- as.numeric(single_data()[[input$single_lr_col]])
+    
+    df <- single_data()
+    lr_values <- as.numeric(df[[input$single_lr_col]])
+    labels <- df[[input$single_label_col]]
+    
+    list(
+      lr_values = lr_values,
+      labels = labels
+    )
+  })
+  
+  single_plot_reactive <- reactive({
+    
+    single_data_obj <- single_analysis_data()
+    lr_values <- single_data_obj$lr_values
     
     if (input$single_scale == "Raw") {
       llr_values <- log(lr_values)
@@ -48,7 +62,7 @@ server <- function(input, output, session){
       llr_values <- lr_values
     } # scale transformation (to natural-log-scale)
     
-    labels <- single_data()[[input$single_label_col]]
+    labels <- single_data_obj$labels
     if (!(SS_LABEL %in% labels) || !(DS_LABEL %in% labels)) {
       showNotification(
         paste0("Error: Label column must contain both '", SS_LABEL, 
@@ -84,10 +98,30 @@ server <- function(input, output, session){
                     levels = c("LR = 1", "LR outputs", "after PAV"))
     )
     
+    draw_key_longline <- function(data, params, size) {
+      
+      col <- if (!is.null(data$colour)) data$colour else "black"
+      lwd <- if (!is.null(data$linewidth)) data$linewidth else 0.8
+      lty <- if (!is.null(data$linetype)) data$linetype else 1
+      
+      grid::segmentsGrob(
+        x0 = unit(0, "npc"),
+        x1 = unit(1, "npc"),
+        y0 = unit(0.5, "npc"),
+        y1 = unit(0.5, "npc"),
+        gp = grid::gpar(
+          col = col,
+          lwd = lwd * .pt,
+          lty = lty,
+          lineend = "butt"
+        )
+      )
+    }
+    
     single_plot <- ggplot(ece_df, aes(x = log10_prior,
                                       y = ECE,
                                       color = Type, linetype = Type)) +
-      geom_line(linewidth = 1) +
+      geom_line(linewidth = 0.8, na.rm = TRUE, key_glyph = draw_key_longline) +
       geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
       labs(x = expression(log[10]~"prior odds"),
            y = "empirical cross-entropy value") +
@@ -97,23 +131,31 @@ server <- function(input, output, session){
         "LR = 1" = "black"
       )) +
       scale_linetype_manual(values = c(
-        "after PAV" = "dashed",
+        "after PAV" = "44",
         "LR outputs" = "solid",
-        "LR = 1" = "dotted"
+        "LR = 1" = "11"
       )) +
       guides(
-        color = guide_legend(keywidth = unit(1.2, "cm")),
-        linetype = guide_legend(keywidth = unit(1.2, "cm"))
+        color = guide_legend(
+          keywidth = unit(1.7, "cm"),
+          override.aes = list(
+            linewidth = 1.2,
+            linetype = c("11", "solid", "44")
+          )
+        ),
+        linetype = "none"
       ) +
       scale_x_continuous(
-        limits = c(input$single_x_min, input$single_x_max),
         expand = c(0, 0),
         breaks = pretty(c(input$single_x_min, input$single_x_max), n = 11)
       ) +
       scale_y_continuous(
-        limits = c(input$single_y_min, input$single_y_max),
         expand = c(0, 0),
         breaks = seq(input$single_y_min, input$single_y_max, length.out = 11)
+      ) +
+      coord_cartesian(
+        xlim = c(input$single_x_min, input$single_x_max),
+        ylim = c(input$single_y_min, input$single_y_max)
       ) +
       theme_minimal(base_size = input$single_font_size) +
       theme(
@@ -127,9 +169,11 @@ server <- function(input, output, session){
         panel.background = element_rect(fill = "white", color = NA),
         plot.background = element_rect(fill = "transparent", color = NA),
         plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"),
-        legend.position = if (input$show_legend) c(0.98, 0.98) else "none",
-        legend.key.height = unit(0.5, "cm"),
-        legend.spacing.y = unit(0.75, "cm"),
+        legend.position = if (input$show_legend) "inside" else "none",
+        legend.position.inside = c(0.98, 0.98),
+        legend.key.height = unit(0.65, "cm"),
+        legend.key.width = unit(1.8, "cm"),
+        legend.spacing.y = unit(0.9, "cm"),
         legend.justification = c("right", "top"),
         legend.background = element_rect(fill = alpha("white", 0.6), color = "grey40"),
         legend.title = element_blank(),
@@ -161,14 +205,10 @@ server <- function(input, output, session){
     }
   )
   
-  output$single_ecePlot <- renderPlot({
-    print(single_plot_reactive())
-  }) # print the ECE plot
-  
   output$single_metrics <- renderPrint({
     
-    req(input$single_label_col, input$single_lr_col)
-    lr_values <- as.numeric(single_data()[[input$single_lr_col]])
+    single_data_obj <- single_analysis_data()
+    lr_values <- single_data_obj$lr_values
     
     if (input$single_scale == "Raw") {
       llr_values <- log(lr_values)
@@ -178,7 +218,7 @@ server <- function(input, output, session){
       llr_values <- lr_values
     } # scale transformation (to natural-log-scale)
     
-    labels <- single_data()[[input$single_label_col]]
+    labels <- single_data_obj$labels
     if (!(SS_LABEL %in% labels) || !(DS_LABEL %in% labels)) {
       showNotification(
         paste0("Error: Label column must contain both '", SS_LABEL, 

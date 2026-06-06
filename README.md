@@ -2,7 +2,7 @@
 
 ### Forensic Likelihood Ratio Evaluation Toolkit (BETA 2026.06)
 
-June 5, 2026\
+June 6, 2026\
 Deng, Guangmou\
 [guangmou01\@outlook.com](mailto:guangmou01@outlook.com)
 

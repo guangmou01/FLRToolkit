@@ -23,13 +23,16 @@ ui <- fluidPage(
                              choices = c("Raw", "log10(LR)", "ln(LR)"), 
                              selected = "Raw"),
                  numericInput("single_E", "Evidence LR ( raw )", value = NULL, min = 0, step = 0.1),
+                 actionButton("single_start_analysis",
+                              "Generate Plot / Metrics", class = "btn-primary"),
+                 hr(),
                  fluidRow(
-                   column(6, numericInput("single_x_min", "X-axis min", value = -5)),
-                   column(6, numericInput("single_x_max", "X-axis max", value = 5))
+                   column(6, numericInput("single_x_min", "X-axis min", value = -5, step = 1)),
+                   column(6, numericInput("single_x_max", "X-axis max", value = 5, step = 1))
                  ),
                  fluidRow(
-                   column(6, numericInput("single_y_min", "Y-axis min", value = 0)),
-                   column(6, numericInput("single_y_max", "Y-axis max", value = 1))
+                   column(6, numericInput("single_y_min", "Y-axis min", value = 0, step = 0.1)),
+                   column(6, numericInput("single_y_max", "Y-axis max", value = 1, step = 0.1))
                  ),
                  numericInput("single_font_size", "Font Size", value = 18, min = 6, max = 24),
                  selectInput("single_fig_down", "Download Format", 
@@ -57,13 +60,16 @@ ui <- fluidPage(
                  selectInput("multi_scale", "Choose LR Scale",
                              choices = c("Raw", "log10(LR)", "ln(LR)"), 
                              selected = "Raw"),
+                 actionButton("multi_start_analysis",
+                              "Generate Plot / Metrics", class = "btn-primary"),
+                 hr(),
                  fluidRow(
-                   column(6, numericInput("multi_x_min", "X-axis min", value = -5)),
-                   column(6, numericInput("multi_x_max", "X-axis max", value = 5))
+                   column(6, numericInput("multi_x_min", "X-axis min", value = -5, step = 1)),
+                   column(6, numericInput("multi_x_max", "X-axis max", value = 5, step = 1))
                  ),
                  fluidRow(
-                   column(6, numericInput("multi_y_min", "Y-axis min", value = 0)),
-                   column(6, numericInput("multi_y_max", "Y-axis max", value = 1))
+                   column(6, numericInput("multi_y_min", "Y-axis min", value = 0, step = 0.1)),
+                   column(6, numericInput("multi_y_max", "Y-axis max", value = 1, step = 0.1))
                  ),
                  numericInput("multi_font_size", "Font Size", value = 18, min = 6, max = 24),
                  selectInput("multi_fig_down", "Download Format", 
@@ -101,12 +107,12 @@ ui <- fluidPage(
                  actionButton("start_analysis", "Perform Analysis", class = "btn-primary"),
                  hr(),
                  fluidRow(
-                   column(6, numericInput("precision_x_min", "X-axis min", value = -5)),
-                   column(6, numericInput("precision_x_max", "X-axis max", value = 5))
+                   column(6, numericInput("precision_x_min", "X-axis min", value = -5, step = 1)),
+                   column(6, numericInput("precision_x_max", "X-axis max", value = 5, step = 1))
                  ),
                  fluidRow(
-                   column(6, numericInput("precision_y_min", "Y-axis min", value = 0)),
-                   column(6, numericInput("precision_y_max", "Y-axis max", value = 1))
+                   column(6, numericInput("precision_y_min", "Y-axis min", value = 0, step = 0.1)),
+                   column(6, numericInput("precision_y_max", "Y-axis max", value = 1, step = 0.1))
                  ),
                  numericInput("precision_font_size", "Font Size", value = 18, min = 6, max = 24),
                  selectInput("precision_fig_down", "Download Format", 

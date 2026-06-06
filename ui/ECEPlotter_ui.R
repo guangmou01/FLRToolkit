@@ -22,13 +22,16 @@ ui <- fluidPage(
                  selectInput("single_scale", "Choose LR Scale",
                              choices = c("Raw", "log10(LR)", "ln(LR)"), 
                              selected = "Raw"),
+                 actionButton("single_start_analysis",
+                              "Generate Plot / Metrics", class = "btn-primary"),
+                 hr(),
                  fluidRow(
-                   column(6, numericInput("single_x_min", "X-axis min", value = -5)),
-                   column(6, numericInput("single_x_max", "X-axis max", value = 5))
+                   column(6, numericInput("single_x_min", "X-axis min", value = -5, step = 1)),
+                   column(6, numericInput("single_x_max", "X-axis max", value = 5, step = 1))
                  ),
                  fluidRow(
-                   column(6, numericInput("single_y_min", "Y-axis min", value = 0)),
-                   column(6, numericInput("single_y_max", "Y-axis max", value = 0.5))
+                   column(6, numericInput("single_y_min", "Y-axis min", value = 0, step = 0.1)),
+                   column(6, numericInput("single_y_max", "Y-axis max", value = 0.5, step = 0.1))
                  ),
                  checkboxInput("show_legend", "Show Legend", value = FALSE),
                  numericInput("single_font_size", "Font Size", value = 18, min = 6, max = 24),

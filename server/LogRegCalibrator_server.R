@@ -57,15 +57,15 @@ server <- function(input, output, session){
     if (input$single_logreg_select == "Robust Version") {
       tagList(
         numericInput("single_prior", "Prior", value = 0.5, min = 0, max = 1, step = 0.01),
-        numericInput("single_robust_weight", "Robust Weight", value = 0, step = 0.1),
-        numericInput("single_max_iter", "Max Iterations", value = 5000, min = 1, step = 100)
+        numericInput("single_robust_weight", "Robust Weight", value = 0, step = 0.01),
+        numericInput("single_max_iter", "Max Iterations", value = 5000, min = 1, step = 1000)
       )
     } else if (input$single_logreg_select == "Regularized Version") {
       tagList(
         numericInput("single_prior", "Prior", value = 0.5, min = 0, max = 1, step = 0.01),
-        numericInput("single_kappa", "Regularization Strength ( kappa )", value = 0, step = 0.1),
+        numericInput("single_kappa", "Regularization Strength ( kappa )", value = 0, step = 0.01),
         textInput("single_df", "Degree of Freedom ( df )", value = ""),
-        numericInput("single_max_iter", "Max Iterations", value = 1000, min = 1, step = 100)
+        numericInput("single_max_iter", "Max Iterations", value = 5000, min = 1, step = 1000)
       )
     }
   })
@@ -200,15 +200,15 @@ server <- function(input, output, session){
     if (input$hv_logreg_select == "Robust Version") {
       tagList(
         numericInput("hv_prior", "Prior", value = 0.5, min = 0, max = 1, step = 0.01),
-        numericInput("hv_robust_weight", "Robust Weight", value = 0, step = 0.1),
-        numericInput("hv_max_iter", "Max Iterations", value = 5000, min = 1, step = 100)
+        numericInput("hv_robust_weight", "Robust Weight", value = 0, step = 0.01),
+        numericInput("hv_max_iter", "Max Iterations", value = 5000, min = 1, step = 1000)
       )
     } else if (input$hv_logreg_select == "Regularized Version") {
       tagList(
         numericInput("hv_prior", "Prior", value = 0.5, min = 0, max = 1, step = 0.01),
-        numericInput("hv_kappa", "Regularization Strength ( kappa )", value = 0, step = 0.1),
+        numericInput("hv_kappa", "Regularization Strength ( kappa )", value = 0, step = 0.01),
         textInput("hv_df", "Degree of Freedom ( df )", value = ""),
-        numericInput("hv_max_iter", "Max Iterations", value = 1000, min = 1, step = 100)
+        numericInput("hv_max_iter", "Max Iterations", value = 5000, min = 1, step = 1000)
       )
     }
   })
@@ -405,15 +405,15 @@ server <- function(input, output, session){
     if (input$loo_logreg_select == "Robust Version") {
       tagList(
         numericInput("loo_prior", "Prior", value = 0.5, min = 0, max = 1, step = 0.01),
-        numericInput("loo_robust_weight", "Robust Weight", value = 0, step = 0.1),
-        numericInput("loo_max_iter", "Max Iterations", value = 5000, min = 1, step = 100)
+        numericInput("loo_robust_weight", "Robust Weight", value = 0, step = 0.01),
+        numericInput("loo_max_iter", "Max Iterations", value = 5000, min = 1, step = 1000)
       )
     } else if (input$loo_logreg_select == "Regularized Version") {
       tagList(
         numericInput("loo_prior", "Prior", value = 0.5, min = 0, max = 1, step = 0.01),
-        numericInput("loo_kappa", "Regularization Strength ( kappa )", value = 0, step = 0.1),
+        numericInput("loo_kappa", "Regularization Strength ( kappa )", value = 0, step = 0.01),
         textInput("loo_df", "Degree of Freedom ( df )", value = ""),
-        numericInput("loo_max_iter", "Max Iterations", value = 1000, min = 1, step = 100)
+        numericInput("loo_max_iter", "Max Iterations", value = 5000, min = 1, step = 1000)
       )
     }
   })

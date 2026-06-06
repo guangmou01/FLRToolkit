@@ -1,9 +1,9 @@
 # ------------------------------------------------------------------------------
-# Updated: 2026/05/31
+# Updated: 2026/06/06
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
-APP_VERSION <- "Version 3.0.0"
+APP_VERSION <- "Version 3.0.1"
 SS_LABEL <- "ss"
 DS_LABEL <- "ds"
 
