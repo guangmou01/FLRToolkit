@@ -1,16 +1,20 @@
 # Path: "metric/ECE.R"
-# Empirical Cross Entropy (ECE) function
-
+# Empirical-cross-entropy (ECE) function.
+#
 # Input:
-# log10_prior_odds - prior odds in log10 scale [numeric]
-# ss_llr - same-source natural-log-likelihood-ratio [numeric vector]
-# ds_llr - different-source natural-log-likelihood-ratio [numeric vector]
-
+# @param log10_prior_odds: 
+#        prior odds in log10 scale [numeric].
+# @param ss_llr: 
+#        same-source natural-log-likelihood-ratio [numeric vector].
+# @param ds_llr: 
+#        different-source natural-log-likelihood-ratio [numeric vector].
+#
 # Output:
-# ECE_val - ECE value at the 'log10_prior_odds'
-
+# @param ECE_val:
+#        ECE value at the 'log10_prior_odds'.
+#
 # ------------------------------------------------------------------------------
-# Updated: 2026/06/02
+# Updated: 2026/06/26
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------

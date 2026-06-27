@@ -1,37 +1,38 @@
 # Path: "calibration/train_llr_fusion_robust.R"
-# R implementation of the robust LogReg from Focal for LR calibration & fusion
-# based on Morrison (2009), and Brümmer et al. (2005)
-
+# R implementation of the robust logistic regression calibration/fusion
+# based on Morrison (2009).
+#
 # References:
-
-# Brümmer, N. (2005).
-# Focal Toolbox [MATLAB script].
-# http://www.dsp.sun.ac.za/nbrummer/focal
-
 # Morrison, G. S. (2009).
 # Robust version of train_llr_fusion.m from Niko Brümmer’s FoCal Toolbox [MATLAB script].
 # https://geoff-morrison.net/#TrainFus
-
+#
 # Input:
-# targets - [n_ss × d] matrix of log-LR scores for same-source trials
-# non_targets - [n_ds × d] matrix of log-LR scores for different-source trials
-# prior - prior probability of the target hypothesis (default = 0.5)
-# robust_weight - robustness weight for class imbalance and outlier resistance
-# max_iter - maximum iterations for logistic regression (default = 5000)
-
+# @param targets:
+#        [n_ss × d] matrix of log-LR scores for same-source trials.
+# @param non_targets:
+#        [n_ds × d] matrix of log-LR scores for different-source trials.
+# @param prior:
+#        prior probability of the target hypothesis (default = 0.5).
+# @param robust_weight:
+#        robustness weight for class imbalance and outlier resistance.
+# @param max_iter:
+#        maximum number of iterations for optimization.
+#
 # Example of the input score matrix:
 #         sys-1 sys-2  ...  sys-d
 # trial-1 [0.8,  1.0,  ...,  0.9]
 # trial-2 [1.5,  1.7,  ...,  1.7]
 # ...     [...,  ...,  ...,  ...]
 # trial-n [0.3,  1.4,  ...,  0.8]
-
+#
 # Output:
-# w - weight vector for logistic regression fusion [numeric vector, length = d + 1]
-#     (d system weights + 1 bias term)
-
+# @param w:
+#        weight vector for logistic regression fusion.
+#        (length = d + 1, d system weights + 1 bias term)
+#
 # ------------------------------------------------------------------------------
-# Updated: 2026/06/02
+# Updated: 2026/06/26
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------

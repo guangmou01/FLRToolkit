@@ -1,44 +1,45 @@
 # Path: "calibration/train_llr_fusion_regularized.R"
-# R implementation of the regularized LogReg from Focal for LR calibration & fusion
-# based on Morrison’s MATLAB implementation (2017)
-
+# R implementation of the regularized logistic regression calibration/fusion
+# described by (Morrison & Poh, 2018)
+#
 # References:
-
-# Brümmer, N. (2005).
-# Focal Toolbox [MATLAB script].
-# http://www.dsp.sun.ac.za/nbrummer/focal
-
 # Morrison, G. S. (2017).
 # Regularized version of train_llr_fusion.m from Niko Brümmer’s FoCal Toolbox [MATLAB script].
 # https://geoff-morrison.net
-
 # Morrison, G. S., & Poh, N. (2018).
 # Avoiding overstating the strength of forensic evidence: Shrunk likelihood ratios/Bayes factors.
 # Science & Justice, 58(3), 200–218.
 # https://doi.org/10.1016/j.scijus.2017.12.005
-
+#
 # Input:
-# targets - [n_ss × d] matrix of log-LR scores for same-source trials
-# non_targets - [n_ds × d] matrix of log-LR scores for different-source trials
-# prior - prior probability of the target hypothesis (default = 0.5)
-# kappa - regularization strength for logistic regression (default = 0)
-#         <= 0.1 to improve numerical stability;
-#         > 1 to introduce the shrinkage.
-# df - degrees of freedom for regularization (optional)
-#      e.g., number of sources in the calibration set.
-# max_iter - maximum number of iterations for optimization (default = 1000)
-
+# @param targets:
+#        [n_ss × d] matrix of log-LR scores for same-source trials.
+# @param non_targets:
+#        [n_ds × d] matrix of log-LR scores for different-source trials.
+# @param prior:
+#        prior probability of the target hypothesis (default = 0.5).
+# @param kappa: 
+#        regularization strength for logistic regression.
+#        <= 0.1 to improve numerical stability; > 1 to introduce the shrinkage;
+#        = 0 means no regularization; see (Morrison & Poh, 2018)
+# @param df:
+#        pseudo degrees of freedom for regularization.
+#        e.g., number of sources in the calibration set.
+# @param max_iter:
+#        maximum number of iterations for optimization.
+#
 # Example of the input score matrix:
 #         sys-1 sys-2  ...  sys-d
 # trial-1 [0.8,  1.0,  ...,  0.9],
 # trial-2 [1.5,  1.7,  ...,  1.7],
 # ...     [...,  ...,  ...,  ...],
 # trial-n [0.3,  1.4,  ...,  0.8]
-
+#
 # Output:
-# w - weight vector for logistic regression fusion [numeric vector, length = d + 1]
-#     (d system weights + 1 bias term)
-
+# @param w:
+#        weight vector for logistic regression fusion.
+#        (length = d + 1, d system weights + 1 bias term)
+#
 # ------------------------------------------------------------------------------
 # Updated: 2026/06/02
 # Author: Deng, Guangmou

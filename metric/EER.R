@@ -1,18 +1,24 @@
 # Path: "metric/EER.R"
-# Equal Error Rate (EER) estimation
-
+# Equal Error Rate (EER) estimation.
+#
 # Input:
-# ss_llr - same-source natural-log-likelihood-ratio [numeric vector]
-# ds_llr - different-source natural-log-likelihood-ratio [numeric vector]
-# num_thresholds - the number of pseudo thresholds used to estimate EER [integer]
-
+# @param ss_llr:
+#        same-source natural-log-likelihood-ratio [numeric vector].
+# @param ds_llr:
+#        different-source natural-log-likelihood-ratio [numeric vector].
+# @param num_thresholds:
+#        the number of pseudo thresholds used to estimate EER [integer].
+#
 # Output:
-# EER - Equal Error Rate [numeric]
-# threshold_log10 - estimated EER threshold in log10-scale [numeric]
-# threshold_raw - estimated EER threshold in raw-LR-scale [numeric]
-
+# @param EER:
+#        Equal Error Rate [numeric].
+# @param threshold_log10:
+#        estimated EER threshold in log10-scale [numeric].
+# @param threshold_raw:
+#        estimated EER threshold in raw-LR-scale [numeric].
+#
 # ------------------------------------------------------------------------------
-# Updated: 2026/05/31
+# Updated: 2026/06/26
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------

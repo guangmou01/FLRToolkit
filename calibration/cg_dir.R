@@ -1,8 +1,8 @@
 # Path: "calibration/cg_dir.R"
-# Conjugate Gradient in LogReg training.
-
+# Conjugate-gradient method in logistic-regression training.
+#
 # ------------------------------------------------------------------------------
-# Updated: 2026/06/02
+# Updated: 2026/06/26
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------

@@ -2,57 +2,78 @@
 # R implementation of the Bi-Gaussianized calibration/fusion (robust LogReg
 # variant) based on Morrison (2024)
 
-# This implementation combines logistic regression calibration/fusion (robust version)
-# with a bi-Gaussianized procedure.
+# This implementation combines robust logistic regression calibration/fusion
+# (Morrison, 2009) with a bi-Gaussianized procedure.
 
-# - Workflow:
-#   1. Train a robust logistic regression model on target (ss) and non-target (ds) scores.
-#   2. Transform scores into "quasi-scores" (pre-calibrated log-likelihood ratios).
-#   3. Estimate the log-likelihood-ratio Cost (Cllr) and map it to the variance (σ²) 
-#      of the target bi-Gaussian distribution (Morrison, 2024).
-#   4. Fit a weighted empirical CDF on the quasi-scores.
-#   5. Construct a target bi-Gaussian CDF model and store both CDFs.
-#   6. Use above pipeline to map new scores to calibrated log-LR values by biGaussian_calibrator().
-
+# Workflow:
+# 1. Fit a robust logistic regression model on target (ss) and non-target (ds) scores.
+# 2. Transform scores into quasi-scores (pre-calibrated lnLR).
+# 3. Estimate the log-likelihood-ratio Cost (Cllr) and map it to the variance (σ²) 
+#    of the target bi-Gaussian distribution (Morrison, 2024).
+# 4. Fit a weighted empirical CDF on the quasi-scores.
+# 5. Construct a target bi-Gaussian mixture CDF and store both CDFs.
+# 6. Use above pipeline to map new scores to calibrated lnLR by biGaussian_calibrator().
+#
 # References:
-
-# Morrison, G. S. (2024). Bi-Gaussianized calibration of likelihood ratios. 
+# Morrison, G. S. (2009).
+# Robust version of train_llr_fusion.m from Niko Brümmer’s FoCal Toolbox [MATLAB script].
+# https://geoff-morrison.net/#TrainFus
+# Morrison, G. S. (2024).
+# Bi-Gaussianized calibration of likelihood ratios. 
 # Law, Probability and Risk, 23(1), 1-34.
 # https://doi.org/10.1093/lpr/mgae004
-
+#
 # Input:
-# targets - [n_ss × d] matrix of log-LR scores for same-source trials
-# non_targets - [n_ds × d] matrix of log-LR scores for different-source trials
-# prior - prior probability of the target hypothesis (default = 0.5)
-# robust_weight - robustness weight for class imbalance and outlier resistance
-# max_iter - maximum iterations for logistic regression (default = 5000)
-# uncal_score - [n × d] matrix of uncalibrated log-LR scores to calibrate
-# grid_k - range (in multiples of σ) for constructing the interpolation grid
-# grid_len - number of grid points (default = 10000)
-
+# @param targets:
+#        [n_ss × d] matrix of log-LR scores for same-source trials.
+# @param non_targets:
+#        [n_ds × d] matrix of log-LR scores for different-source trials.
+# @param prior:
+#        prior probability of the target hypothesis (default = 0.5).
+# @param robust_weight:
+#        robustness weight for class imbalance and outlier resistance.
+# @param max_iter:
+#        maximum number of iterations for optimization.
+#
+# @param uncal_score:
+#        [n × d] matrix of uncalibrated log-LR scores to be calibrated.
+# @param grid_k: 
+#        range (in multiples of σ) for constructing the interpolation grid.
+# @param grid_len: 
+#        number of grid points (default = 10000).
+#
 # Example of the input score matrix:
 #         sys-1 sys-2  ...  sys-d
-# trial-1 [0.8,  1.0,  ...,  0.9]
-# trial-2 [1.5,  1.7,  ...,  1.7]
-# ...     [...,  ...,  ...,  ...]
+# trial-1 [0.8,  1.0,  ...,  0.9],
+# trial-2 [1.5,  1.7,  ...,  1.7],
+# ...     [...,  ...,  ...,  ...],
 # trial-n [0.3,  1.4,  ...,  0.8]
-
-# Output:
-# train_biGaussian_robust() -> list containing:
-#       fusion_w       - fitted LogReg calibration/fusion weights
-#       Cllr           - target Cllr
-#       sigma2_target  - variance of the target bi-Gaussian distribution
-#       weighted_ecdf  - empirical CDF function fitted on quasi-scores
-#       bigmm_cdf      - bi-Gaussian CDF function
 #
-# biGaussian_robust() -> list containing:
-#       calibrated_lnLR - calibrated natural-log-likelihood ratios for input scores
-#       fusion_w        - learned LogReg calibration/fusion weights
-#       Cllr            - estimated Cllr
-#       sigma2_target   - variance of the target bi-Gaussian distribution
-
+# Output:
+# train_biGaussian_regularized() -> list containing:
+# @param fusion_w:
+#        fitted LogReg calibration/fusion weights.
+# @param Cllr:
+#        Cllr of the target bi-Gaussian distribution.
+# @param sigma2_target:
+#        variance of the target bi-Gaussian distribution.
+# @param weighted_ecdf:
+#        empirical CDF function fitted on quasi-scores.
+# @param bigmm_cdf:
+#        target bi-Gaussian CDF function.
+#
+# biGaussian_regularized() -> list containing:
+# @param calibrated_lnLR:
+#        calibrated natural-log-likelihood ratios for input scores.
+# @param fusion_w:
+#        fitted LogReg calibration/fusion weights.
+# @param Cllr:
+#        Cllr of the target bi-Gaussian distribution.
+# @param sigma2_target:
+#        variance of the target bi-Gaussian distribution.
+#
 # ------------------------------------------------------------------------------
-# Updated: 2026/06/02
+# Updated: 2026/06/26
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------

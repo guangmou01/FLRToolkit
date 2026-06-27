@@ -1,65 +1,85 @@
 # Path: "calibration/biGaussian_regularized.R"
 # R implementation of the Bi-Gaussianized calibration/fusion (regularized LogReg
 # variant) based on Morrison (2024)
-
-# This implementation combines logistic regression calibration/fusion (regularized version)
-# with a bi-Gaussianized procedure.
-# Unlike the robust version, this implementation includes a regularization term
-# to stabilize parameter estimation and mitigate overfitting.
-
-# - Workflow:
-#   1. Train a regularized logistic regression model on target (ss) and non-target (ds) scores.
-#   2. Transform scores into "quasi-scores" (pre-calibrated log-likelihood ratios).
-#   3. Estimate the log-likelihood-ratio Cost (Cllr) and map it to the variance (σ²) 
-#      of the target bi-Gaussian distribution (Morrison, 2024).
-#   4. Fit a weighted empirical CDF on the quasi-scores.
-#   5. Construct a target bi-Gaussianized CDF model and store both CDFs.
-#   6. Use above pipeline to map new scores to calibrated log-LR values by biGaussian_calibrator().
-
+#
+# This implementation combines regularized logistic regression calibration/fusion
+# (Morrison & Poh, 2018) with a bi-Gaussianized procedure.
+#
+# Workflow:
+# 1. Fit a regularized logistic regression model on target (ss) and non-target (ds) scores.
+# 2. Transform scores into quasi-scores (pre-calibrated lnLR).
+# 3. Estimate the log-likelihood-ratio Cost (Cllr) and map it to the variance (σ²) 
+#    of the target bi-Gaussian distribution (Morrison, 2024).
+# 4. Fit a weighted empirical CDF on the quasi-scores.
+# 5. Construct a target bi-Gaussian mixture CDF and store both CDFs.
+# 6. Use above pipeline to map new scores to calibrated lnLR by biGaussian_calibrator().
+# 
 # References:
-
-# Morrison, G. S. (2024). Bi-Gaussianized calibration of likelihood ratios. 
+# Morrison, G. S., & Poh, N. (2018).
+# Avoiding overstating the strength of forensic evidence: Shrunk likelihood ratios/Bayes factors.
+# Science & Justice, 58(3), 200–218. 
+# https://doi.org/10.1016/j.scijus.2017.12.005
+# Morrison, G. S. (2024).
+# Bi-Gaussianized calibration of likelihood ratios. 
 # Law, Probability and Risk, 23(1), 1-34.
 # https://doi.org/10.1093/lpr/mgae004
-
+#
 # Input:
-# targets - [n_ss × d] matrix of log-LR scores for same-source trials
-# non_targets - [n_ds × d] matrix of log-LR scores for different-source trials
-# prior - prior probability of the target hypothesis (default = 0.5)
-# kappa - regularization strength for logistic regression (default = 0)
-#         <= 0.1 to improve numerical stability;
-#         > 1 to introduce the shrinkage.
-# df - degrees of freedom for regularization (optional)
-#      e.g., number of sources in the calibration set.
-# max_iter - maximum number of iterations for optimization (default = 1000)
-# uncal_score - [n × d] matrix of uncalibrated log-LR scores to be calibrated
-
-# grid_k - range (in multiples of σ) for interpolation grid
-# grid_len - number of grid points for interpolation (default = 10000)
-
+# @param targets:
+#        [n_ss × d] matrix of log-LR scores for same-source trials.
+# @param non_targets:
+#        [n_ds × d] matrix of log-LR scores for different-source trials.
+# @param prior:
+#        prior probability of the target hypothesis (default = 0.5).
+# @param kappa: 
+#        regularization strength for logistic regression.
+#        <= 0.1 to improve numerical stability; > 1 to introduce the shrinkage;
+#        = 0 means no regularization; see (Morrison & Poh, 2018)
+# @param df:
+#        pseudo degrees of freedom for regularization.
+#        e.g., number of sources in the calibration set.
+# @param max_iter:
+#        maximum number of iterations for optimization.
+#
+# @param uncal_score:
+#        [n × d] matrix of uncalibrated log-LR scores to be calibrated.
+# @param grid_k: 
+#        range (in multiples of σ) for constructing the interpolation grid.
+# @param grid_len: 
+#        number of grid points (default = 10000).
+#
 # Example of the input score matrix:
 #         sys-1 sys-2  ...  sys-d
-# trial-1 [0.8,  1.0,  ...,  0.9]
-# trial-2 [1.5,  1.7,  ...,  1.7]
-# ...     [...,  ...,  ...,  ...]
+# trial-1 [0.8,  1.0,  ...,  0.9],
+# trial-2 [1.5,  1.7,  ...,  1.7],
+# ...     [...,  ...,  ...,  ...],
 # trial-n [0.3,  1.4,  ...,  0.8]
-
+#
 # Output:
 # train_biGaussian_regularized() -> list containing:
-#       fusion_w       - fitted LogReg calibration/fusion weights
-#       Cllr           - target Cllr
-#       sigma2_target  - variance of the target bi-Gaussian distribution
-#       weighted_ecdf  - empirical CDF function fitted on quasi-scores
-#       bigmm_cdf      - bi-Gaussian CDF function
+# @param fusion_w:
+#        fitted LogReg calibration/fusion weights.
+# @param Cllr:
+#        Cllr of the target bi-Gaussian distribution.
+# @param sigma2_target:
+#        variance of the target bi-Gaussian distribution.
+# @param weighted_ecdf:
+#        empirical CDF function fitted on quasi-scores.
+# @param bigmm_cdf:
+#        target bi-Gaussian CDF function.
 #
 # biGaussian_regularized() -> list containing:
-#       calibrated_lnLR - calibrated natural-log-likelihood ratios for input scores
-#       fusion_w        - learned LogReg calibration/fusion weights
-#       Cllr            - estimated Cllr
-#       sigma2_target   - variance of the target bi-Gaussian distribution
-
+# @param calibrated_lnLR:
+#        calibrated natural-log-likelihood ratios for input scores.
+# @param fusion_w:
+#        fitted LogReg calibration/fusion weights.
+# @param Cllr:
+#        Cllr of the target bi-Gaussian distribution.
+# @param sigma2_target:
+#        variance of the target bi-Gaussian distribution.
+#
 # ------------------------------------------------------------------------------
-# Updated: 2026/06/02
+# Updated: 2026/06/26
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------

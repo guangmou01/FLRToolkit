@@ -1,30 +1,34 @@
 # Path: "scoring/MVKD.R"
 # R implementation of MVKD-based LR function
 # based on Aitken & Lucy (2004), and Morrison (2007)
-
+#
 # References:
-
 # Aitken, C. G. G., & Lucy, D. (2004).
 # Evaluation of trace evidence in the form of multivariate data.
 # Journal of the Royal Statistical Society: Series C (Applied Statistics), 53(1), 109–122.
 # https://doi.org/10.1046/j.0035-9254.2003.05271.x
-
 # Morrison, G. S. (2007).
 # Matlab implementation of Aitken & Lucy’s (2004) forensic likelihood-ratio software 
 # using multivariate-kernel-density estimation (Version 17/07/2008) [MATLAB script].
 # http://geoff-morrison.net/#MVKD
-
+#
 # Input:
-# off_data - offender measurements (rows = observations, columns = features) [numeric matrix]
-# sus_data - suspect measurements (rows = observations, columns = features) [numeric matrix]
-# bg_data - background/reference dataset [dataframe]
-#           1. the first column must be the ID labels [character or numeric]
-#           2. the remaining columns are features [numeric]
-
+# @param off_data:
+#        offender measurements (rows = observations, columns = features) [numeric matrix].
+# @param sus_data:
+#        suspect measurements (rows = observations, columns = features) [numeric matrix].
+# @param bg_data:
+#        background/reference dataset [dataframe]:
+#        1. the first column must be the ID labels [character or numeric].
+#        2. the remaining columns are features [numeric].
+#
 # Output:
-# bg_para - background parameters estimated from bg_data [list]
-# llr - natural-log-likelihood-ratio [numeric]
-
+# @param bg_para:
+#        background parameters estimated from bg_data [list].
+#
+# @param llr:
+#        natural-log-likelihood-ratio [numeric].
+#
 # ------------------------------------------------------------------------------
 # Updated: 2026/06/04
 # Author: Deng, Guangmou

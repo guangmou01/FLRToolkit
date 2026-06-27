@@ -540,7 +540,7 @@ server <- function(input, output, session){
           sigma2_target[idx]   <- model$sigma2_target
         }
         
-        rm(model); gc()
+        # rm(model); gc()
         incProgress(1 / nkeys, detail = paste0(k_i, "/", nkeys))
       }
     })

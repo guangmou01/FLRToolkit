@@ -1,31 +1,32 @@
 # Path: "calibration/lin_fusion.R"
-# R implementation of linear fusion (FoCal style)
-# based on Brümmer (2005)
-
+# R implementation of (FoCal) linear fusion based on Brümmer (2005).
+# 
 # References:
-
 # Brümmer, N. (2005).
 # Focal Toolbox [MATLAB script].
 # http://www.dsp.sun.ac.za/nbrummer/focal
-
+#
 # Input:
-# weights - numeric vector of length d + 1 pre-trained by train_llr_fusion_*()
-#           (first d elements = system weights, last = bias)
-# scores - [n × d] numeric matrix 
-#          (rows = trials, columns = systems)
-
+# @param weights:
+#        numeric vector of length d + 1 pre-trained by train_llr_fusion_*().
+#        (first d elements = system weights, last = bias)
+# @param scores:
+#        [n × d] numeric matrix.
+#        (rows = trials, columns = systems)
+#
 # Example of the input score matrix:
 #         sys-1 sys-2  ...  sys-d
 # trial-1 [0.8,  1.0,  ...,  0.9]
 # trial-2 [1.5,  1.7,  ...,  1.7]
 # ...     [...,  ...,  ...,  ...]
 # trial-n [0.3,  1.4,  ...,  0.8]
-
+#
 # Output:
-# fused - [n × 1] numeric matrix (or scalar if n = 1)
-
+# @param fused:
+#        [n × 1] numeric matrix (or scalar if n = 1)
+#
 # ------------------------------------------------------------------------------
-# Updated: 2026/06/02
+# Updated: 2026/06/26
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------

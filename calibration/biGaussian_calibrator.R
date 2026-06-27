@@ -1,50 +1,50 @@
 # Path: "calibration/biGaussian_calibrator.R"
 # R implementation of the Bi-Gaussianized calibration/fusion (calibrator module
 # of the LogReg variant) based on Morrison (2024)
-
+#
 # This module maps uncalibrated scores (LR in natural-log-scale) into
 # calibrated natural-log-likelihood ratios (lnLR) using the model pre-trained by
 # train_biGaussian_robust() or train_biGaussian_regularized().
-
+#
 # Workflow:
-#   1. Apply the logistic regression fusion weights to transform the 
-#      uncalibrated scores into quasi-scores (pre-calibrated lnLR).
-#   2. Map the quasi-scores into their empirical cumulative distribution (ECDF) values
-#      based on the calibration data.
-#   3. Use cumulative distribution function (CDF) of the target bi-Gaussian derived 
-#      from training to invert ECDF values into well-calibrated lnLR values.
-
+# 1. Apply the logistic regression fusion weights to transform the uncalibrated 
+#    scores into quasi-scores (pre-calibrated lnLR).
+# 2. Map the quasi-scores into their empirical cumulative distribution (ECDF) 
+#    values based on the calibration data.
+# 3. Use cumulative distribution function (CDF) of the target bi-Gaussian derived 
+#    from training to invert ECDF values into well-calibrated lnLR values.
+#
 # References:
-
-# Morrison, G. S. (2024). Bi-Gaussianized calibration of likelihood ratios. 
+# Morrison, G. S. (2024).
+# Bi-Gaussianized calibration of likelihood ratios. 
 # Law, Probability and Risk, 23(1), 1-34.
 # https://doi.org/10.1093/lpr/mgae004
-
+#
 # Input:
-# uncal_score - [n × d] numeric matrix of uncalibrated scores to be calibrated 
-#                  (n = trials, d = number of systems)
-# model - list returned by train_biGaussian_*() containing:
-#         fusion_w      - fitted LogReg calibration/fusion weights
-#         Cllr          - target Cllr
-#         sigma2_target - variance of the target bi-Gaussian distribution
-#         weighted_ecdf - empirical CDF function of quasi-scores
-#         bigmm_cdf     - target bi-Gaussian CDF function
-# grid_k - range (in multiples of σ) for constructing the interpolation grid
-# grid_len - number of grid points (default = 10000)
-
+# @param uncal_score: 
+#        [n × d] numeric matrix of uncalibrated scores to be calibrated
+#        (n = trials, d = number of systems).
+# @param model: 
+#        a list returned by train_biGaussian_*().
+# @param grid_k: 
+#        range (in multiples of σ) for constructing the interpolation grid.
+# @param grid_len: 
+#        number of grid points (default = 10000).
+#
 # Example of the input score matrix:
 #         sys-1 sys-2  ...  sys-d
 # trial-1 [0.8,  1.0,  ...,  0.9],
 # trial-2 [1.5,  1.7,  ...,  1.7],
 # ...     [...,  ...,  ...,  ...],
 # trial-n [0.3,  1.4,  ...,  0.8]
-
+#
 # Output:
-# calibrated_lnLR - [n × 1] numeric matrix of calibrated natural-log-likelihood-
-#                   ratios corresponding to uncalibrated input scores.
-
+# @param calibrated_lnLR: 
+#        [n × 1] numeric matrix of calibrated natural-log-likelihood-
+#        ratios corresponding to uncalibrated input scores.
+#
 # ------------------------------------------------------------------------------
-# Updated: 2026/06/02
+# Updated: 2026/06/27
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------

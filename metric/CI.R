@@ -1,39 +1,44 @@
 # Path: "metric/CI.R"
-# 95% Credible Interval (CI) Estimation for LR-based System
-
+# 95% Credible Interval (CI) estimation for LR-based system
+#
 # Parametric Procedure Described in:
 # Morrison, G. S., Thiruvaran, T., & Epps, J. (2010).
 # Estimating the precision of the Likelihood-ratio output of a forensic-voice-comparison system.
 # The Speaker and Language Recognition Workshop, 63-70.
-
+#
 # Input:
-# df - A data.frame with at least the following columns:
-#      id_1    : ID of the 1st individual [character or factor]
-#      id_2    : ID of the 2nd individual [character or factor]
-#      log10LR : log10-likelihood-ratio values for the trial [numeric]
-# symmetric_trial - whether to treat (id_1, id_2) and (id_2, id_1) as the same trial [logical]
+# @param df: 
+#        a data.frame with at least the following columns:
+#        id_1    : ID of the 1st individual [character or factor].
+#        id_2    : ID of the 2nd individual [character or factor].
+#        log10LR : log10-likelihood-ratio values for the trial [numeric].
+# @param symmetric_trial:
+#        whether to treat (id_1, id_2) and (id_2, id_1) as the same trial [logical].
 #
 # Notes:
-#    - Each row corresponds to a ID-trial (id_1, id_2).
-#    - Multiple rows for the same trial are required (repeated measurements).
+# 1. Each row corresponds to a ID-trial (id_1, id_2).
+# 2. Multiple rows for the same trial are required (repeated measurements).
 #
 # Output:
-# cllr_mean - Cllr calculated on the means of the groups defined in the description of the 95% CI metric.
-# CI_half_log10 - 95% CI estimation in log10-scale (t-distribution-based)
-# result - A data.frame where each row corresponds to one unique trial.
-#          id_1         : 1st ID
-#          id_2         : 2nd ID
-#          trial_key    : unique trial identifier in the format "id_1|id_2"
-#          n            : count of trials within the trial key
-#          label        : "ss" if same-source (id_1 == id_2), otherwise "ds"
-#          log10LR_mean : mean log10-likelihood-ratio for the trial
-#          LR_mean      : mean likelihood-ratio for the trial
-#          CI_half      : pooled half-width of the 95% confidence interval 
-#          CI_lower     : lower bound of the 95% CI
-#          CI_upper     : upper bound of the 95% CI
-
+# @param cllr_mean:
+#        Cllr calculated on the means of the groups defined in the description of the 95% CI metric.
+# @param CI_half_log10:
+#        95% CI estimation in log10-scale (t-distribution-based).
+# @param result:
+#        a data.frame where each row corresponds to one unique trial.
+#        id_1         : 1st ID.
+#        id_2         : 2nd ID.
+#        trial_key    : unique trial identifier in the format "id_1|id_2".
+#        n            : count of trials within the trial key.
+#        label        : "ss" if same-source (id_1 == id_2), otherwise "ds".
+#        log10LR_mean : mean log10-likelihood-ratio for the trial.
+#        LR_mean      : mean likelihood-ratio for the trial.
+#        CI_half      : pooled half-width of the 95% confidence interval.
+#        CI_lower     : lower bound of the 95% CI.
+#        CI_upper     : upper bound of the 95% CI.
+#
 # ------------------------------------------------------------------------------
-# Updated: 2026/05/31
+# Updated: 2026/06/27
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------

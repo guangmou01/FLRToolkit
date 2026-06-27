@@ -1,15 +1,18 @@
 # Path: "metric/TippettPlot.R"
-# Tippett plot drawing function (only for quick check purpose)
-
+# Tippett plot drawing function (only for quick check purpose).
+#
 # Input:
-# ss_llr - same-source natural-log-likelihood-ratio [numeric vector]
-# ds_llr - different-source natural-log-likelihood-ratio [numeric vector]
-
-# output:
-# tippett_plot - ggplot object showing a Tippett plot in log10-scale [ggplot]
-
+# @param ss_llr:
+#        same-source natural-log-likelihood-ratio [numeric vector].
+# @param ds_llr:
+#        different-source natural-log-likelihood-ratio [numeric vector].
+#
+# Output:
+# @param tippett_plot:
+#        ggplot object showing a Tippett plot in log10-scale [ggplot].
+#
 # ------------------------------------------------------------------------------
-# Updated: 2026/05/30
+# Updated: 2026/06/26
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
@@ -22,7 +25,7 @@ tippett_plot <- function(ss_llr, ds_llr,
                          y_lab = "cumulative proportion",
                          line.type = 1,
                          font = "sans",
-                         font.size = 16){
+                         font.size = 18){
   
   ss_llr <- as.numeric(ss_llr)
   ds_llr <- as.numeric(ds_llr)

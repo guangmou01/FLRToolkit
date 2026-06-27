@@ -1,22 +1,25 @@
 # Path: "metric/Cllr.R"
-# Log-likelihood-ratio Cost
-
+# Log-likelihood-ratio Cost (Cllr).
+#
 # Input:
-# ss_llr - same-source natural-log-likelihood-ratio [numeric vector]
-# ds_llr - different-source natural-log-likelihood-ratio [numeric vector]
-
+# @param ss_llr: 
+#        same-source natural-log-likelihood-ratio [numeric vector].
+# @param ds_llr: 
+#        different-source natural-log-likelihood-ratio [numeric vector].
+#
 # Output:
-# cllr - Log-likelihood-ratio Cost [numeric]
-# cllr_min - Discrimination Loss optimized by PAV [numeric]
-# cllr_cal - Calibration Loss [numeric]
-
+# @param cllr: 
+#        Log-likelihood-ratio Cost [numeric].
+# @param cllr_min: 
+#        Discrimination Loss optimized by PAV [numeric].
+# @param cllr_cal:
+#        Calibration Loss [numeric].
+#
 # ------------------------------------------------------------------------------
 # Updated: 2026/05/30
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
-
-# Cllr calculation formula in the natural-log-likelihood-ratio scale
 
 cllr <- function(ss_llr, ds_llr){
   
