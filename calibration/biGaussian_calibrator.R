@@ -52,6 +52,7 @@
 biGaussian_calibrator <- function(uncal_score, model,
                                   grid_k = 4, grid_len = 10000) {
   
+  # basic process
   fusion_w <- model$fusion_w
   sigma2_target <- model$sigma2_target
   weighted_ecdf <- model$weighted_ecdf
@@ -65,13 +66,13 @@ biGaussian_calibrator <- function(uncal_score, model,
   beta  <- fusion_w[1:d]
   alpha <- fusion_w[d+1]
   
-  # 1. Uncalibrated score to quasi score
+  # uncalibrated score to quasi-score
   quasi_uncal <- as.vector(X %*% beta + alpha)
   
-  # 2. Quasi score to the ECDF value
+  # quasi-score to the ECDF value
   qvals <- weighted_ecdf(quasi_uncal)
   
-  # 3. ECDF value to calibrated score (lnLR)
+  # ECDF value to calibrated lnLR
   half_sigma2_target <- sigma2_target / 2
   sigma_target <- sqrt(sigma2_target)
   

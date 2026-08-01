@@ -1,12 +1,8 @@
 # Path: "server/MVKDLR_server.R"
 
+source("server/utils/add_lr_scales.R", local = TRUE)
+
 server <- function(input, output, session){
-  
-  add_lr_scales <- function(lnLR){
-    LR <- exp(lnLR)
-    log10LR <- lnLR / log(10)
-    return(list(lnLR = lnLR, LR = LR, log10LR = log10LR))
-  }
   
   # ====================== MVKD-based LR Calculator (server) ===================
   SingleOffData <- reactive({
@@ -983,7 +979,7 @@ server <- function(input, output, session){
     )
     
     # 3. Generate leave-out key
-    validation_table$LO_key <- mapply(
+    validation_table$leave_out_key <- mapply(
       function(off_id, sus_id){
         paste(sort(c(off_id, sus_id)), collapse = "|")
       },
@@ -995,8 +991,8 @@ server <- function(input, output, session){
     validation_table$LR <- NA_real_
     validation_table$log10LR <- NA_real_
     
-    # 4. Train MVKD model by LO_key and score row by row
-    unique_keys <- unique(validation_table$LO_key)
+    # 4. Train MVKD model by leave_out_key and score row by row
+    unique_keys <- unique(validation_table$leave_out_key)
     total_keys <- length(unique_keys)
     progress_counter <- 0
     
@@ -1011,7 +1007,7 @@ server <- function(input, output, session){
         bg_df <- bg_df[, c("id", input$loo_feats), drop = FALSE]
         
         if(nrow(bg_df) < 2){
-          warning(paste("Skipping LO_key", key, ": insufficient reference data."))
+          warning(paste("Skipping leave_out_key", key, ": insufficient reference data."))
           incProgress(1 / total_keys,
                       detail = paste(progress_counter, "of", total_keys))
           next
@@ -1023,7 +1019,7 @@ server <- function(input, output, session){
         
         loo_MVKD_model <- MVKD_train(bg_data = bg_df)
         
-        row_idx <- which(validation_table$LO_key == key)
+        row_idx <- which(validation_table$leave_out_key == key)
         
         for(i in row_idx){
           

@@ -53,7 +53,7 @@
 # train_biGaussian_regularized() -> list containing:
 # @param fusion_w:
 #        fitted LogReg calibration/fusion weights.
-# @param Cllr:
+# @param cllr_target:
 #        Cllr of the target bi-Gaussian distribution.
 # @param sigma2_target:
 #        variance of the target bi-Gaussian distribution.
@@ -67,7 +67,7 @@
 #        calibrated natural-log-likelihood ratios for input scores.
 # @param fusion_w:
 #        fitted LogReg calibration/fusion weights.
-# @param Cllr:
+# @param cllr_target:
 #        Cllr of the target bi-Gaussian distribution.
 # @param sigma2_target:
 #        variance of the target bi-Gaussian distribution.
@@ -90,7 +90,7 @@ train_biGaussian_robust <- function(targets, non_targets,
   d  <- ncol(targets)
   if (ncol(non_targets) != d) stop("Mismatch in score dimension (calibration set).")
   
-  # Train a LogReg fusion/calibration model (robust)
+  # train a robust logistic-regression fusion/calibration model
   fusion_w <- train_llr_fusion_robust(
     targets = targets,
     non_targets = non_targets,
@@ -101,23 +101,23 @@ train_biGaussian_robust <- function(targets, non_targets,
   beta  <- fusion_w[1:d]
   alpha <- fusion_w[d+1]
   
-  # Pre-calibrated (quasi) score
+  # pre-calibrated (quasi) score
   quasi_ss <- as.vector(targets %*% beta + alpha)
   quasi_ds <- as.vector(non_targets %*% beta + alpha)
   
-  # Estimate Cllr
+  # estimate the target Cllr
   punish_ss <- log1p(exp(-quasi_ss)) / log(2)
   punish_ds <- log1p(exp(quasi_ds))  / log(2)
-  Cllr <- 0.5 * (mean(punish_ss) + mean(punish_ds))
+  cllr_target <- 0.5 * (mean(punish_ss) + mean(punish_ds))
   
-  # Map the Cllr into the sigma2 of the target bi-Gaussianized model
+  # map the target Cllr into the sigma2 of the target bi-Gaussianized model
   b <- 17.665396790464737
   c <-  0.009333834837656
-  sigma2_target <- - log((log(Cllr) / b) + 1) / c
+  sigma2_target <- - log((log(cllr_target) / b) + 1) / c
   sigma_target  <- sqrt(sigma2_target)
   half_sigma2   <- sigma2_target / 2
   
-  # Use the quasi score to fit a weighted ECDF function
+  # use the quasi score to fit a weighted ECDF function
   w_ss <- rep(1 / ((n1 + 1) * 2), n1)
   w_ds <- rep(1 / ((n0 + 1) * 2), n0)
   ecdf_w <- c(w_ds, w_ss)
@@ -131,16 +131,16 @@ train_biGaussian_robust <- function(targets, non_targets,
   unique_df <- unique_df[order(unique_df$sorted_scores), ]
   weighted_ecdf <- approxfun(unique_df$sorted_scores, cumsum(unique_df$sorted_weights), rule = 2)
   
-  # Fit the target bi-Gaussianized CDF function
+  # fit the target bi-Gaussianized CDF function
   bigmm_cdf <- function(x) {
     0.5 * stats::pnorm(x, mean = -half_sigma2, sd = sigma_target) +
       0.5 * stats::pnorm(x, mean =  +half_sigma2, sd = sigma_target)
   }
   
-  # Return the model
+  # return the model
   list(
     fusion_w = fusion_w,
-    Cllr = Cllr,
+    cllr_target = cllr_target,
     sigma2_target = sigma2_target,
     weighted_ecdf = weighted_ecdf,
     bigmm_cdf = bigmm_cdf
@@ -153,7 +153,7 @@ biGaussian_robust <- function(uncal_score, targets, non_targets,
                               grid_k = 8,
                               grid_len = 10000) {
   
-  # Train a bi-Gaussianized model
+  # train a bi-Gaussianized model
   model <- train_biGaussian_robust(
     targets = targets,
     non_targets = non_targets,
@@ -162,7 +162,7 @@ biGaussian_robust <- function(uncal_score, targets, non_targets,
     max_iter = max_iter
   )
   
-  # Calibration
+  # calibration
   calibrated_lnLR <- biGaussian_calibrator(
     model = model,
     uncal_score = uncal_score,
@@ -173,7 +173,7 @@ biGaussian_robust <- function(uncal_score, targets, non_targets,
   list(
     calibrated_lnLR = calibrated_lnLR,
     fusion_w = model$fusion_w,
-    Cllr = model$Cllr,
+    cllr_target = model$cllr_target,
     sigma2_target = model$sigma2_target
   )
 }

@@ -51,17 +51,21 @@ tippett_plot <- function(ss_llr, ds_llr,
     geom_line(data = data_ss, aes(x = log10LR, y = Cumulative_Prop),
               color = "red", linetype = line.type) +
     geom_vline(xintercept = 0, color = "black", linetype = "dashed", linewidth = 0.5) +
-    scale_x_continuous(limits = range(c(data_ss$log10LR, data_ds$log10LR)),
-                       expand = c(0, 0),
-                       breaks = pretty(c(data_ss$log10LR, data_ds$log10LR), n = 8)) +
-    scale_y_continuous(limits = c(0, 1),
-                       expand = c(0, 0),
+    scale_x_continuous(expand = expansion(mult = 0.1),
+                       breaks = pretty(c(data_ss$log10LR, data_ds$log10LR, 0), n = 8)) +
+    scale_y_continuous(expand = c(0, 0),
                        breaks = seq(0, 1, length.out = 11)) +
+    coord_cartesian(
+      xlim = range(c(data_ss$log10LR, data_ds$log10LR, 0)) +
+        c(-1, 1) * diff(range(c(data_ss$log10LR, data_ds$log10LR, 0))) * 0.1,
+      ylim = c(0, 1),
+      expand = FALSE
+    ) +
     labs(x = x_lab, y = y_lab) +
     theme_minimal(base_size = font.size, base_family = font) +
     theme(
       legend.position = "none",
-      panel.grid.major = element_line(color = "lightgrey", linewidth = 0.4, linetype = 5),
+      panel.grid.major = element_line(color = "lightgrey", linewidth = 0.4, linetype = 1),
       panel.grid.minor = element_blank(),
       axis.ticks.length = unit(-0.2, "cm"),
       axis.ticks = element_line(color = "black", linewidth = 0.2),

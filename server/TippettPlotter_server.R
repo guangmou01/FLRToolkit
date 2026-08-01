@@ -75,7 +75,7 @@ server <- function(input, output, session){
       ) +
       theme_minimal(base_size = input$single_font_size) +
       theme(legend.position = "none",
-            panel.grid.major = element_line(color = "lightgrey", linewidth = 0.4, linetype = 5),
+            panel.grid.major = element_line(color = "lightgrey", linewidth = 0.4, linetype = 1),
             panel.grid.minor = element_blank(),
             axis.ticks.length = unit(-0.2, "cm"),
             axis.ticks = element_line(color = "black", linewidth = 0.2),
@@ -240,7 +240,7 @@ server <- function(input, output, session){
       ) +
       theme_minimal(base_size = input$multi_font_size) +
       theme(legend.position = "none",
-            panel.grid.major = element_line(color = "lightgrey", linewidth = 0.4, linetype = 5),
+            panel.grid.major = element_line(color = "lightgrey", linewidth = 0.4, linetype = 1),
             panel.grid.minor = element_blank(),
             axis.ticks.length = unit(-0.2, "cm"),
             axis.ticks = element_line(color = "black", linewidth = 0.2),
@@ -502,7 +502,7 @@ server <- function(input, output, session){
       theme_minimal(base_size = input$precision_font_size) +
       theme(
         legend.position = "none",
-        panel.grid.major = element_line(color = "lightgrey", linewidth = 0.4, linetype = 5),
+        panel.grid.major = element_line(color = "lightgrey", linewidth = 0.4, linetype = 1),
         panel.grid.minor = element_blank(),
         axis.ticks.length = unit(-0.2, "cm"),
         axis.ticks = element_line(color = "black", linewidth = 0.2),

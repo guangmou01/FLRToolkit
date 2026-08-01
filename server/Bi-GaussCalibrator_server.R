@@ -1,19 +1,9 @@
 # Path: "server/Bi-GaussCalibrator_server.R"
 
+source("server/utils/transform_to_ln.R", local = TRUE)
+source("server/utils/BiGauss_LOOCV_helper.R", local = TRUE)
+
 server <- function(input, output, session){
-  
-  transform_to_ln <- function(x, scale) {
-    x <- as.numeric(x)
-    if (scale == "Raw") {
-      return(log(x))
-    } else if (scale == "log10(LR)") {
-      return(x * log(10))
-    } else if (scale == "ln(LR)") {
-      return(x)
-    } else {
-      stop("Unknown scale provided.")
-    }
-  } # all calibration is based on log-scaled LR
   
   # ======================== Calibration Mode (server) =========================
   single_data <- reactive({
@@ -113,7 +103,7 @@ server <- function(input, output, session){
       evidence_lnLR <- sweep(sweep(evidence_lnLR, 2, z_mu, "-"), 2, z_sd, "/")
     }
     
-    df_val <- if (is.null(input$single_df) || input$single_df == "") NULL else as.numeric(input$single_df)
+    single_reg_df_val <- if (is.null(input$single_df) || input$single_df == "") NULL else as.numeric(input$single_df)
     
     calibration_result <- if (input$single_logreg_select == "Robust Version") {
       biGaussian_robust(
@@ -133,7 +123,7 @@ server <- function(input, output, session){
         non_targets = ds_lnLR,
         prior = input$single_prior,
         kappa = input$single_kappa,
-        df = df_val,
+        df = single_reg_df_val,
         max_iter = input$single_max_iter,
         grid_k = input$single_grid_k,
         grid_len = input$single_grid_len
@@ -145,7 +135,7 @@ server <- function(input, output, session){
     calibrated_log10LR <- calibrated_lnLR / log(10)
     
     output$single_paras <- renderPrint({
-      cat("Target Cllr: ", round(calibration_result$Cllr, 6), "\n", sep = "")
+      cat("Target Cllr: ", round(calibration_result$cllr_target, 6), "\n", sep = "")
       cat("Target Sigma²: ", round(calibration_result$sigma2_target, 6), "\n", sep = "")
     })
     
@@ -271,7 +261,7 @@ server <- function(input, output, session){
       val_lnLR <- sweep(sweep(val_lnLR, 2, z_mu, "-"), 2, z_sd, "/")
     }
     
-    df_val <- if (is.null(input$hv_df) || input$hv_df == "") NULL else as.numeric(input$hv_df)
+    hv_reg_df_val <- if (is.null(input$hv_df) || input$hv_df == "") NULL else as.numeric(input$hv_df)
     
     model <- if (input$hv_logreg_select == "Robust Version") {
       train_biGaussian_robust(
@@ -287,7 +277,7 @@ server <- function(input, output, session){
         non_targets = cal_ds_lnLR,
         prior = input$hv_prior,
         kappa = input$hv_kappa,
-        df = df_val,
+        df = hv_reg_df_val,
         max_iter = input$hv_max_iter
       )
     }
@@ -308,7 +298,7 @@ server <- function(input, output, session){
     calibrated_results <- val_df
     
     output$hv_paras <- renderPrint({
-      cat("Target Cllr: ", round(model$Cllr, 6), "\n")
+      cat("Target Cllr: ", round(model$cllr_target, 6), "\n")
       cat("Target Sigma²: ", round(model$sigma2_target, 6), "\n")
     })
     
@@ -426,134 +416,53 @@ server <- function(input, output, session){
     df <- loo_data()
     score_cols <- input$loo_score_col
     
-    id1 <- as.character(df[[input$loo_id1_col]])
-    id2 <- as.character(df[[input$loo_id2_col]])
-    df$label <- ifelse(id1 == id2, SS_LABEL, DS_LABEL)
-    
-    make_key <- function(a, b) {
-      ab <- sort(c(as.character(a), as.character(b)))
-      paste0(ab[1], "|", ab[2])
-    }
-    df$leave_out_key <- mapply(make_key, id1, id2, USE.NAMES = FALSE)
-    
-    all_ids <- sort(unique(c(id1, id2)))
-    id2rows <- setNames(vector("list", length(all_ids)), all_ids)
-    for (s in all_ids) {
-      id2rows[[s]] <- which(id1 == s | id2 == s)
-    }
-    
-    unique_keys <- unique(df$leave_out_key)
-    
-    ln_mat_all <- as.matrix(do.call(cbind, lapply(
-      score_cols,
-      function(col) transform_to_ln(df[[col]], input$loo_scale)
-    )))
-    colnames(ln_mat_all) <- score_cols
-    
-    withProgress(message = "Calibrating by Leave-out Keys:", value = 0, {
-      nkeys <- length(unique_keys)
+    calibrated_results <- if (input$loo_logreg_select == "Robust Version") {
       
-      calibrated_lnLR <- rep(NA_real_, nrow(df))
-      Cllr_target     <- rep(NA_real_, nrow(df))
-      sigma2_target   <- rep(NA_real_, nrow(df))
+      BiGauss_LOOCV_robust(
+        df = df,
+        id1_col = input$loo_id1_col,
+        id2_col = input$loo_id2_col,
+        score_col = score_cols,
+        score_scale = input$loo_scale,
+        prior = input$loo_prior,
+        robust_weight = input$loo_robust_weight,
+        max_iter = input$loo_max_iter,
+        grid_k = input$loo_grid_k,
+        grid_len = input$loo_grid_len,
+        z_score = input$loo_zscore,
+        ss_label = SS_LABEL,
+        ds_label = DS_LABEL
+      )
       
-      for (k_i in seq_along(unique_keys)) {
-        key <- unique_keys[k_i]
-        parts <- strsplit(key, "\\|")[[1]]
-        a <- parts[1]; b <- parts[2]
-        
-        excl_idx <- if (a == b) id2rows[[a]] else union(id2rows[[a]], id2rows[[b]])
-        train_idx <- setdiff(seq_len(nrow(df)), excl_idx)
-        train_labels <- df$label[train_idx]
-        
-        train_ss_ln <- ln_mat_all[train_idx[train_labels == SS_LABEL], , drop = FALSE]
-        train_ds_ln <- ln_mat_all[train_idx[train_labels == DS_LABEL], , drop = FALSE]
-        
-        if (nrow(train_ss_ln) == 0 || nrow(train_ds_ln) == 0) {
-          message("Skipped key [", key, "]: insufficient data.")
-          incProgress(1 / nkeys, detail = paste0(k_i, "/", nkeys))
-          next
-        }
-        
-        if (isTRUE(input$loo_zscore)) {
-          z_train <- rbind(train_ss_ln, train_ds_ln)
-          z_mu <- colMeans(z_train, na.rm = TRUE)
-          z_sd <- apply(z_train, 2, sd, na.rm = TRUE)
-          z_sd[is.na(z_sd) | z_sd == 0] <- 1
-          
-          train_ss_ln <- sweep(sweep(train_ss_ln, 2, z_mu, "-"), 2, z_sd, "/")
-          train_ds_ln <- sweep(sweep(train_ds_ln, 2, z_mu, "-"), 2, z_sd, "/")
-        }
-        
-        model <- tryCatch({
-          if (input$loo_logreg_select == "Robust Version") {
-            train_biGaussian_robust(
-              targets = train_ss_ln,
-              non_targets = train_ds_ln,
-              prior = input$loo_prior,
-              robust_weight = input$loo_robust_weight,
-              max_iter = input$loo_max_iter
-            )
-          } else {
-            df_val <- if (is.null(input$loo_df) || input$loo_df == "") NULL else as.numeric(input$loo_df)
-            train_biGaussian_regularized(
-              targets = train_ss_ln,
-              non_targets = train_ds_ln,
-              prior = input$loo_prior,
-              kappa = input$loo_kappa,
-              df = df_val,
-              max_iter = input$loo_max_iter
-            )
-          }
-        }, error = function(e) {
-          message("Training failed for key [", key, "]: ", e$message)
-          NULL
-        })
-        
-        if (is.null(model)) {
-          incProgress(1 / nkeys, detail = paste0(k_i, "/", nkeys))
-          next
-        }
-        
-        idx <- which(df$leave_out_key == key)
-        if (length(idx) > 0) {
-          batch_scores <- ln_mat_all[idx, , drop = FALSE]
-          
-          if (isTRUE(input$loo_zscore)) {
-            batch_scores <- sweep(sweep(batch_scores, 2, z_mu, "-"), 2, z_sd, "/")
-          }
-          
-          cal_llr_batch <- tryCatch({
-            biGaussian_calibrator(
-              uncal_score = batch_scores,
-              model = model,
-              grid_k = input$loo_grid_k,
-              grid_len = input$loo_grid_len
-            )
-          }, error = function(e) {
-            message("Calibration failed for key [", key, "]: ", e$message)
-            rep(NA_real_, length(idx))
-          })
-          
-          calibrated_lnLR[idx] <- as.numeric(cal_llr_batch)
-          Cllr_target[idx]     <- model$Cllr
-          sigma2_target[idx]   <- model$sigma2_target
-        }
-        
-        # rm(model); gc()
-        incProgress(1 / nkeys, detail = paste0(k_i, "/", nkeys))
+    } else {
+      
+      loo_df_reg_val <- if (is.null(input$loo_df) || input$loo_df == "") {
+        NULL
+      } else {
+        as.numeric(input$loo_df)
       }
-    })
-    
-    df$sigma2_target <- sigma2_target
-    df$Cllr_target <- Cllr_target
-    df$calibrated_lnLR <- calibrated_lnLR
-    df$calibrated_LR <- exp(calibrated_lnLR)
-    df$calibrated_log10LR <- calibrated_lnLR / log(10)
+      
+      BiGauss_LOOCV_regularized(
+        df = df,
+        id1_col = input$loo_id1_col,
+        id2_col = input$loo_id2_col,
+        score_col = score_cols,
+        score_scale = input$loo_scale,
+        prior = input$loo_prior,
+        kappa = input$loo_kappa,
+        df_reg = loo_df_reg_val,
+        max_iter = input$loo_max_iter,
+        grid_k = input$loo_grid_k,
+        grid_len = input$loo_grid_len,
+        z_score = input$loo_zscore,
+        ss_label = SS_LABEL,
+        ds_label = DS_LABEL
+      )
+    }
     
     output$loo_results <- renderDT({
       datatable(
-        df,
+        calibrated_results,
         rownames = FALSE,
         options = list(
           pageLength = 10,
@@ -565,8 +474,8 @@ server <- function(input, output, session){
       )
     })
     
-    ss_llr <- df[df$label == SS_LABEL, "calibrated_lnLR"]
-    ds_llr <- df[df$label == DS_LABEL, "calibrated_lnLR"]
+    ss_llr <- calibrated_results[calibrated_results$label == SS_LABEL, "calibrated_lnLR"]
+    ds_llr <- calibrated_results[calibrated_results$label == DS_LABEL, "calibrated_lnLR"]
     
     ss_llr <- ss_llr[!is.na(ss_llr)]
     ds_llr <- ds_llr[!is.na(ds_llr)]
@@ -576,7 +485,7 @@ server <- function(input, output, session){
         tippett_plot(
           ss_llr = ss_llr,
           ds_llr = ds_llr,
-          x_lab = expression(log[10](Lambda)), 
+          x_lab = expression(log[10](Lambda)),
           y_lab = "cumulative proportion"
         )
       }, error = function(e) {
@@ -587,17 +496,17 @@ server <- function(input, output, session){
     })
     
     cllr_pooled <- cllr(ss_llr, ds_llr)
-    cllr_min    <- cllr_min(ss_llr, ds_llr)
-    cllr_cal    <- cllr_cal(ss_llr, ds_llr)
-    eer_result  <- eer(ss_llr, ds_llr)
+    cllr_min_result <- cllr_min(ss_llr, ds_llr)
+    cllr_cal_result <- cllr_cal(ss_llr, ds_llr)
+    eer_result <- eer(ss_llr, ds_llr)
     
     output$loo_metrics <- renderPrint({
       cat("Cllr (pooled):", cllr_pooled, "\n")
-      cat("Cllr (min):",    cllr_min,    "\n")
-      cat("Cllr (cal):",    cllr_cal,    "\n")
-      cat("EER:",           eer_result$EER,            "\n")
+      cat("Cllr (min):", cllr_min_result, "\n")
+      cat("Cllr (cal):", cllr_cal_result, "\n")
+      cat("EER:", eer_result$EER, "\n")
       cat("EER Threshold (log10):", eer_result$threshold_log10, "\n")
-      cat("EER Threshold (raw):",   eer_result$threshold_raw,   "\n")
+      cat("EER Threshold (raw):", eer_result$threshold_raw, "\n")
     })
     
     output$loo_downloadData <- downloadHandler(
@@ -606,7 +515,7 @@ server <- function(input, output, session){
         paste0(original_name, "_calibrated_", Sys.Date(), ".csv")
       },
       content = function(file) {
-        write.csv(df, file, row.names = FALSE)
+        write.csv(calibrated_results, file, row.names = FALSE)
       }
     )
   })
