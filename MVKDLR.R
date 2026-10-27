@@ -3,7 +3,7 @@
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
-APP_VERSION <- "Version 8.0.0"
+APP_VERSION <- "Version 8.1.0"
 SS_LABEL <- "ss"
 DS_LABEL <- "ds"
 

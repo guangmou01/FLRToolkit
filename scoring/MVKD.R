@@ -30,10 +30,21 @@
 #        natural-log-likelihood-ratio [numeric].
 #
 # ------------------------------------------------------------------------------
-# Updated: 2026/06/04
+# Updated: 2026/10/27
 # Author: Deng, Guangmou
 # Contact: guangmou01@outlook.com
 # ------------------------------------------------------------------------------
+
+# stable log-sum-exp calculation
+log_sum_exp <- function(x) {
+  m <- max(x)
+  m + log(sum(exp(x - m)))
+}
+
+# log absolute determinant
+log_abs_det <- function(x) {
+  as.numeric(determinant(x, logarithm = TRUE)$modulus)
+}
 
 # sum of squared errors
 sse <- function(x) {
@@ -129,64 +140,69 @@ MVKD_scorer <- function(off_data, sus_data, bg_para) {
   kernel     <- smoothing_parameter^2 * C
   inv_kernel <- solve(kernel)
   
-  kernel_density_at_typicality <- 0
-  dist_backindividuals_to_suspect <- 0
-  dist_backindividuals_to_offender <- 0
+  log_kernel_typicality <- numeric(num_individuals)
+  log_kernel_suspect <- numeric(num_individuals)
+  log_kernel_offender <- numeric(num_individuals)
   
   for (i in 1:num_individuals) {
     current_mean <- matrix(means_mat[i, ], ncol = 1)
     
     typicality <- suspect_offender_mean_typicality - current_mean
     M <- solve(solve(offender_covar_inv + suspect_covar_inv) + kernel)
-    kernel_density_at_typicality <- kernel_density_at_typicality +
-      exp(-0.5 * t(typicality) %*% M %*% typicality)
+    log_kernel_typicality[i] <-
+      -0.5 * drop(t(typicality) %*% M %*% typicality)
     
     dist_to_suspect <- suspect_mean - current_mean
     M_suspect <- solve(suspect_covar + kernel)
-    dist_backindividuals_to_suspect <- dist_backindividuals_to_suspect +
-      exp(-0.5 * t(dist_to_suspect) %*% M_suspect %*% dist_to_suspect)
+    log_kernel_suspect[i] <-
+      -0.5 * drop(t(dist_to_suspect) %*% M_suspect %*% dist_to_suspect)
     
     dist_to_offender <- offender_mean - current_mean
     M_offender <- solve(offender_covar + kernel)
-    dist_backindividuals_to_offender <- dist_backindividuals_to_offender +
-      exp(-0.5 * t(dist_to_offender) %*% M_offender %*% dist_to_offender)
+    log_kernel_offender[i] <-
+      -0.5 * drop(t(dist_to_offender) %*% M_offender %*% dist_to_offender)
   }
   
-  # numerator
-  num1 <- (2 * pi)^(-num_variables) *
-    (det(offender_covar))^(-0.5) *
-    (det(suspect_covar))^(-0.5) *
-    abs(det(C))^(-0.5)
-  num2 <- (num_individuals * smoothing_parameter^num_variables)^(-1)
-  num3 <- abs(det(offender_covar_inv + suspect_covar_inv + inv_kernel))^(-0.5)
-  num4 <- exp(-0.5 * t(suspect_offender_mean_difference) %*%
-                solve(offender_covar + suspect_covar) %*%
-                suspect_offender_mean_difference)
+  # Numerator
+  log_num1 <- -num_variables * log(2 * pi) -
+    0.5 * log_abs_det(offender_covar) -
+    0.5 * log_abs_det(suspect_covar) -
+    0.5 * log_abs_det(C)
   
-  numerator <- num1 * num2 * num3 * num4 * kernel_density_at_typicality
+  log_num2 <- -log(num_individuals * smoothing_parameter^num_variables)
   
-  # denominator
-  denom1 <- (2 * pi)^(-num_variables) * abs(det(C))^(-1)
-  denom2 <- (num_individuals * smoothing_parameter^num_variables)^(-2)
-  denom3 <- (det(offender_covar))^(-0.5) *
-    abs(det(offender_covar_inv + inv_kernel))^(-0.5) *
-    dist_backindividuals_to_offender
-  denom4 <- (det(suspect_covar))^(-0.5) *
-    abs(det(suspect_covar_inv + inv_kernel))^(-0.5) *
-    dist_backindividuals_to_suspect
+  log_num3 <- -0.5 * log_abs_det(
+    offender_covar_inv + suspect_covar_inv + inv_kernel
+  )
   
-  denominator <- denom1 * denom2 * denom3 * denom4
+  log_num4 <- -0.5 * drop(
+    t(suspect_offender_mean_difference) %*%
+      solve(offender_covar + suspect_covar) %*%
+      suspect_offender_mean_difference
+  )
   
-  llr <- log(numerator) - log(denominator)
+  log_numerator <- log_num1 + log_num2 + log_num3 + log_num4 +
+    log_sum_exp(log_kernel_typicality)
   
-  if (is.infinite(llr) && llr > 0) {
-    llr <- log(.Machine$double.xmax)
-  }
-  if (is.infinite(llr) && llr < 0) {
-    llr <- log(.Machine$double.xmin)
-  }
+  # Denominator
+  log_denom1 <- -num_variables * log(2 * pi) - log_abs_det(C)
   
-  return(as.numeric(llr))
+  log_denom2 <- -2 * log(num_individuals * smoothing_parameter^num_variables)
+  
+  log_denom3 <- -0.5 * log_abs_det(offender_covar) -
+    0.5 * log_abs_det(offender_covar_inv + inv_kernel) +
+    log_sum_exp(log_kernel_offender)
+  
+  log_denom4 <- -0.5 * log_abs_det(suspect_covar) -
+    0.5 * log_abs_det(suspect_covar_inv + inv_kernel) +
+    log_sum_exp(log_kernel_suspect)
+  
+  log_denominator <- log_denom1 + log_denom2 + log_denom3 + log_denom4
+  
+  # natural-log-likelihood-ratio
+  llr <- as.numeric(log_numerator - log_denominator)
+  
+  return(llr)
 }
 
 # wrapper function
